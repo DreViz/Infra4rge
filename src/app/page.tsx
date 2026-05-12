@@ -20,35 +20,44 @@ const features = [
     icon: Network,
     title: "Architecture Diagrams",
     description:
-      "Instantly visualize your cloud infrastructure as a clean, professional architecture diagram. Mermaid-powered, fully editable.",
-    badge: "Live Preview",
-    badgeVariant: "cyan" as const,
+      "Instantly visualize your cloud infrastructure as a color-coded architecture diagram. Download as PNG, zoom, and share.",
+    badge: "Live",
+    badgeVariant: "green" as const,
     color: "cyan",
   },
   {
     icon: Terminal,
     title: "Terraform Code",
     description:
-      "Get production-ready HCL with proper modules, variables, and outputs. AWS, GCP, and Azure supported out of the box.",
-    badge: "IaC Ready",
-    badgeVariant: "violet" as const,
+      "Production-ready HCL with KMS encryption, IAM least-privilege, multi-AZ, and security defaults baked in from the start.",
+    badge: "Live",
+    badgeVariant: "green" as const,
+    color: "violet",
+  },
+  {
+    icon: Zap,
+    title: "Conversational Refinement",
+    description:
+      "\"Add Redis\", \"make it multi-region\", \"switch to serverless\" — diagram and Terraform both update together in one message.",
+    badge: "Live",
+    badgeVariant: "green" as const,
     color: "violet",
   },
   {
     icon: DollarSign,
     title: "Cost Estimation",
     description:
-      "Know your monthly cloud bill before you deploy. Per-resource breakdown with optimization suggestions.",
-    badge: "Coming Soon",
-    badgeVariant: "yellow" as const,
+      "Monthly cost breakdown per resource, auto-generated alongside your Terraform. One-click optimization suggestions.",
+    badge: "Live",
+    badgeVariant: "green" as const,
     color: "yellow",
   },
   {
     icon: Shield,
     title: "Security Audit",
     description:
-      "Automated Checkov scanning on every generation. Security score, findings, and one-click auto-fix.",
-    badge: "Coming Soon",
+      "Automatic security scoring (A–F) on every Terraform. Misconfigurations by severity with per-finding fix buttons.",
+    badge: "Live",
     badgeVariant: "green" as const,
     color: "green",
   },
@@ -57,39 +66,30 @@ const features = [
     title: "GitHub Integration",
     description:
       "Push your Terraform to a new repo with GitHub Actions CI/CD wired up and ready for team collaboration.",
-    badge: "Phase 3",
+    badge: "Coming Soon",
     badgeVariant: "default" as const,
     color: "default",
-  },
-  {
-    icon: Zap,
-    title: "Conversational Refinement",
-    description:
-      "\"Add Redis caching\" or \"make it multi-region\" — both the diagram and Terraform update together in real time.",
-    badge: "AI Powered",
-    badgeVariant: "violet" as const,
-    color: "violet",
   },
 ];
 
 const steps = [
   {
     number: "01",
-    title: "Describe your app",
+    title: "Describe what you're building",
     description:
-      "Tell InfraForge what you're building in plain English. Our AI asks smart clarifying questions to understand your scale, compliance needs, and cloud preference.",
+      "Tell InfraForge what you want to build in plain English. The more detail you give, the faster it generates — no generic forms, no repeated questions.",
   },
   {
     number: "02",
-    title: "Review the architecture",
+    title: "Review and refine the diagram",
     description:
-      "A live architecture diagram appears instantly. Refine it with natural language — add services, change providers, scale up or down.",
+      "A color-coded architecture diagram appears in seconds. Say \"add Redis\", \"make it multi-region\", or \"switch to serverless\" — it updates live.",
   },
   {
     number: "03",
-    title: "Get your Terraform",
+    title: "Confirm and get everything",
     description:
-      "Production-ready HCL with proper structure, security defaults, and cost estimates. Copy, download, or push directly to GitHub.",
+      "One click generates production-ready Terraform, a monthly cost breakdown, and a security audit with a score and fix suggestions — all at once.",
   },
 ];
 
@@ -121,9 +121,9 @@ export default function HomePage() {
           {/* Pill badge */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#222] bg-[#111]/80 backdrop-blur-sm text-xs text-[#a1a1aa]">
             <Sparkles className="h-3 w-3 text-violet-400" />
-            <span>Powered by GLM</span>
+            <span>Powered by GLM-5</span>
             <span className="h-3 w-px bg-[#333]" />
-            <span className="text-violet-400">Phase 1 — Public Beta</span>
+            <span className="text-violet-400">Diagram · Terraform · Cost · Security</span>
           </div>
 
           {/* Headline */}

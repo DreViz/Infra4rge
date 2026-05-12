@@ -15,10 +15,11 @@ interface DiagramPanelProps {
   diagram: string | null;
   summary: string | null;
   stage: ForgeStage;
+  isRefinement: boolean;
   onConfirm: () => void;
 }
 
-export function DiagramPanel({ isGenerating, diagram, summary, stage, onConfirm }: DiagramPanelProps) {
+export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefinement, onConfirm }: DiagramPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [rendered, setRendered] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -27,9 +28,9 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, onConfirm 
 
   useEffect(() => {
     let cancelled = false;
-    setRendered(false);
 
     const render = async () => {
+      setRendered(false);
       if (typeof window === "undefined") return;
       const mermaid = (await import("mermaid")).default;
 
@@ -37,24 +38,24 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, onConfirm 
         startOnLoad: false,
         theme: "base",
         themeVariables: {
-          // Light fills, dark text — always readable
-          primaryColor: "#ede9fe",
+          // Vibrant defaults — nodes will be overridden by classDef from AI
+          primaryColor: "#c4b5fd",        // violet — compute
           primaryTextColor: "#1a1a1a",
           primaryBorderColor: "#7c3aed",
-          lineColor: "#6b7280",
-          secondaryColor: "#dbeafe",
-          tertiaryColor: "#d1fae5",
-          background: "#ffffff",
-          mainBkg: "#f9fafb",
-          nodeBorder: "#9ca3af",
-          clusterBkg: "#f3f4f6",
-          clusterBorder: "#d1d5db",
-          titleColor: "#111827",
-          edgeLabelBackground: "#f9fafb",
+          lineColor: "#64748b",
+          secondaryColor: "#93c5fd",      // blue — database
+          tertiaryColor: "#6ee7b7",       // green — cache
+          background: "#f8fafc",
+          mainBkg: "#f1f5f9",
+          nodeBorder: "#94a3b8",
+          clusterBkg: "#f1f5f9",
+          clusterBorder: "#cbd5e1",
+          titleColor: "#0f172a",
+          edgeLabelBackground: "#f8fafc",
           fontFamily: "var(--font-geist-sans), sans-serif",
           fontSize: "13px",
         },
-        flowchart: { curve: "basis", padding: 20 },
+        flowchart: { curve: "basis", padding: 24 },
       });
 
       if (!containerRef.current || cancelled) return;
@@ -85,15 +86,42 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, onConfirm 
   }, [diagramSource, isGenerating]);
 
   const handleDownload = () => {
-    const svg = containerRef.current?.querySelector("svg");
-    if (!svg) return;
-    const blob = new Blob([svg.outerHTML], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "architecture.svg";
-    a.click();
-    URL.revokeObjectURL(url);
+    const svgEl = containerRef.current?.querySelector("svg");
+    if (!svgEl) return;
+
+    const bbox = svgEl.getBoundingClientRect();
+    const width = Math.max(bbox.width, 400);
+    const height = Math.max(bbox.height, 300);
+    const scale = 2;
+
+    // Use base64 data URL — blob URLs taint the canvas and block toBlob()
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgData)))}`;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "architecture.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    };
+    img.src = dataUrl;
   };
 
   return (
@@ -127,14 +155,15 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, onConfirm 
             <ZoomIn className="h-3.5 w-3.5" />
           </Button>
           <div className="w-px h-4 bg-[#222] mx-1" />
-          <Button variant="ghost" size="icon" onClick={handleDownload} className="h-7 w-7" disabled={!rendered || isGenerating}>
+          <Button variant="ghost" size="sm" onClick={handleDownload} className="h-7 gap-1.5" disabled={!rendered || isGenerating || !diagram}>
             <Download className="h-3.5 w-3.5" />
+            <span className="text-xs">PNG</span>
           </Button>
         </div>
       </div>
 
       {/* Diagram area */}
-      <div className="flex-1 overflow-auto p-6 bg-[#f8f8f8]">
+      <div className="flex-1 overflow-auto p-6 bg-[#f1f5f9]">
         {isGenerating ? (
           <GeneratingState />
         ) : !rendered ? (
@@ -164,13 +193,11 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, onConfirm 
           {/* Confirm button — only shown when diagram is ready and terraform not yet generated */}
           {stage === "diagram_ready" && (
             <div className="px-4 pb-4 pt-2">
-              <Button
-                onClick={onConfirm}
-                variant="glow"
-                className="w-full group"
-              >
+              <Button onClick={onConfirm} variant="glow" className="w-full group">
                 <CheckCircle className="h-4 w-4" />
-                Confirm Architecture & Generate Terraform
+                {isRefinement
+                  ? "Looks good — Regenerate Terraform"
+                  : "Confirm Architecture & Generate Terraform"}
                 <ArrowRight className="h-4 w-4 ml-auto transition-transform group-hover:translate-x-0.5" />
               </Button>
             </div>
