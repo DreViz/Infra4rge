@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
   Cpu,
@@ -13,216 +12,216 @@ import {
   Terminal,
   Sparkles,
   ChevronRight,
+  History,
 } from "lucide-react";
 
 const features = [
   {
     icon: Network,
     title: "Architecture Diagrams",
-    description:
-      "Instantly visualize your cloud infrastructure as a color-coded architecture diagram. Download as PNG, zoom, and share.",
-    badge: "Live",
-    badgeVariant: "green" as const,
-    color: "cyan",
+    description: "Color-coded cloud diagrams generated from plain English. Zoom, refine, and download as PNG.",
+    color: "text-violet-400",
+    bg: "bg-violet-950/20",
+    border: "border-violet-900/20",
   },
   {
     icon: Terminal,
-    title: "Terraform Code",
-    description:
-      "Production-ready HCL with KMS encryption, IAM least-privilege, multi-AZ, and security defaults baked in from the start.",
-    badge: "Live",
-    badgeVariant: "green" as const,
-    color: "violet",
+    title: "Production Terraform",
+    description: "HCL with KMS encryption, IAM least-privilege, multi-AZ, and security defaults — out of the box.",
+    color: "text-cyan-400",
+    bg: "bg-cyan-950/20",
+    border: "border-cyan-900/20",
   },
   {
     icon: Zap,
     title: "Conversational Refinement",
-    description:
-      "\"Add Redis\", \"make it multi-region\", \"switch to serverless\" — diagram and Terraform both update together in one message.",
-    badge: "Live",
-    badgeVariant: "green" as const,
-    color: "violet",
+    description: "Say \"add Redis\" or \"make it serverless\" — diagram and Terraform both update in the same message.",
+    color: "text-violet-400",
+    bg: "bg-violet-950/20",
+    border: "border-violet-900/20",
   },
   {
     icon: DollarSign,
     title: "Cost Estimation",
-    description:
-      "Monthly cost breakdown per resource, auto-generated alongside your Terraform. One-click optimization suggestions.",
-    badge: "Live",
-    badgeVariant: "green" as const,
-    color: "yellow",
+    description: "Per-resource monthly cost breakdown with optimization suggestions, auto-generated with every Terraform.",
+    color: "text-yellow-400",
+    bg: "bg-yellow-950/20",
+    border: "border-yellow-900/20",
   },
   {
     icon: Shield,
     title: "Security Audit",
-    description:
-      "Automatic security scoring (A–F) on every Terraform. Misconfigurations by severity with per-finding fix buttons.",
-    badge: "Live",
-    badgeVariant: "green" as const,
-    color: "green",
+    description: "Security score A–F with Checkov findings by severity. One-click fix sends the patch back to the AI.",
+    color: "text-emerald-400",
+    bg: "bg-emerald-950/20",
+    border: "border-emerald-900/20",
+  },
+  {
+    icon: History,
+    title: "Project History",
+    description: "Every architecture auto-saves locally. Restore any past project instantly or export as a ZIP.",
+    color: "text-[#a1a1aa]",
+    bg: "bg-[#161616]",
+    border: "border-[#1e1e1e]",
   },
   {
     icon: GitBranch,
     title: "GitHub Integration",
-    description:
-      "Push your Terraform to a new repo with GitHub Actions CI/CD wired up and ready for team collaboration.",
-    badge: "Coming Soon",
-    badgeVariant: "default" as const,
-    color: "default",
+    description: "Push Terraform to a new repo with GitHub Actions CI/CD wired up for your team.",
+    color: "text-[#52525b]",
+    bg: "bg-[#111]",
+    border: "border-[#1a1a1a]",
+    soon: true,
   },
 ];
 
 const steps = [
   {
     number: "01",
-    title: "Describe what you're building",
+    title: "Describe your project",
+    detail: "AI asks smart questions",
     description:
-      "Tell InfraForge what you want to build in plain English. The more detail you give, the faster it generates — no generic forms, no repeated questions.",
+      "Tell InfraForge what you're building. It detects your domain — streaming, SaaS, ML, e-commerce — and asks only the 1-2 questions that actually change the architecture.",
+    output: null,
   },
   {
     number: "02",
-    title: "Review and refine the diagram",
+    title: "Review the architecture diagram",
+    detail: "Color-coded, live preview",
     description:
-      "A color-coded architecture diagram appears in seconds. Say \"add Redis\", \"make it multi-region\", or \"switch to serverless\" — it updates live.",
+      "A cloud architecture diagram appears instantly. Refine it by chatting — \"add Redis\", \"make it multi-region\", \"switch to Fargate\" — diagram updates in real time.",
+    output: "→ Architecture Diagram (PNG)",
   },
   {
     number: "03",
-    title: "Confirm and get everything",
+    title: "Confirm and generate Terraform",
+    detail: "Production-ready HCL",
     description:
-      "One click generates production-ready Terraform, a monthly cost breakdown, and a security audit with a score and fix suggestions — all at once.",
+      "One click generates complete Terraform with KMS encryption, least-privilege IAM, multi-AZ, VPC flow logs, S3 versioning, and all security defaults enforced from line one.",
+    output: "→ main.tf",
+  },
+  {
+    number: "04",
+    title: "Cost breakdown + Security audit",
+    detail: "Auto-generated alongside Terraform",
+    description:
+      "Monthly cost per resource appears automatically. Security is scored A–F with every misconfiguration listed by severity. One-click \"Fix All\" patches the Terraform.",
+    output: "→ Cost report · Security score",
+  },
+  {
+    number: "05",
+    title: "Save and export",
+    detail: "Never lose your work",
+    description:
+      "Every architecture auto-saves to your local history with its cost and security score. Restore any past project in one click, or export as a ZIP with Terraform and diagram.",
+    output: "→ Project ZIP · History sidebar",
   },
 ];
 
 const examplePrompts = [
-  "A SaaS app with Next.js frontend, FastAPI backend, PostgreSQL, and Redis cache on AWS",
-  "Microservices e-commerce platform with Kubernetes, API gateway, and a message queue",
-  "ML inference pipeline with GPU instances, S3 data lake, and a serving endpoint",
-  "Multi-region web app with global CDN, auto-scaling, and disaster recovery",
+  "SaaS project management tool — Next.js, FastAPI, PostgreSQL, Redis on AWS",
+  "Video streaming platform with HLS, transcoding, and CDN delivery",
+  "ML inference API with GPU instances, auto-scaling, and S3 data lake",
+  "Multi-region e-commerce with Kubernetes, API gateway, and message queue",
 ];
 
 export default function HomePage() {
   return (
-    <div className="min-h-full bg-[#080808] relative overflow-hidden">
+    <div className="min-h-full bg-[#080808]">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen px-6 pt-14 grid-bg">
+      {/* ─── Hero ─── */}
+      <section className="relative flex flex-col items-center justify-center min-h-screen px-6 pt-14 overflow-hidden">
         {/* Background glow */}
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full opacity-20 pointer-events-none"
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] pointer-events-none"
           style={{
-            background:
-              "radial-gradient(ellipse, rgba(109,40,217,0.4) 0%, rgba(6,182,212,0.1) 50%, transparent 70%)",
-            filter: "blur(60px)",
+            background: "radial-gradient(ellipse, rgba(109,40,217,0.18) 0%, rgba(6,182,212,0.06) 50%, transparent 70%)",
+            filter: "blur(80px)",
           }}
         />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 grid-bg opacity-40 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col items-center text-center max-w-4xl mx-auto gap-8">
-          {/* Pill badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#222] bg-[#111]/80 backdrop-blur-sm text-xs text-[#a1a1aa]">
+        <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto gap-7">
+          {/* Pill */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#1e1e1e] bg-[#111]/60 text-xs text-[#71717a]">
             <Sparkles className="h-3 w-3 text-violet-400" />
             <span>Powered by GLM-5</span>
-            <span className="h-3 w-px bg-[#333]" />
-            <span className="text-violet-400">Diagram · Terraform · Cost · Security</span>
+            <span className="h-3 w-px bg-[#2a2a2a]" />
+            <span className="text-[#a1a1aa]">Diagram · Terraform · Cost · Security</span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.05]">
-            <span className="text-[#fafafa]">Describe it.</span>
+          <h1 className="text-5xl sm:text-6xl md:text-[72px] font-bold tracking-tight leading-[1.04]">
+            <span className="text-[#fafafa]">From description</span>
             <br />
-            <span className="gradient-text">Architect it.</span>
-            <br />
-            <span className="text-[#fafafa]">Ship it.</span>
+            <span className="gradient-text">to production infra.</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg text-[#71717a] max-w-xl leading-relaxed">
-            Turn a plain-English description into a production-ready cloud
-            architecture diagram and Terraform code — in one conversation.
+          <p className="text-base sm:text-lg text-[#52525b] max-w-lg leading-relaxed">
+            Describe your app. Get an architecture diagram, production Terraform,
+            monthly cost estimate, and security audit — in one conversation.
           </p>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <Link href="/forge">
-              <Button variant="glow" size="lg" className="group">
-                Start Building Free
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Button>
-            </Link>
-            <Button variant="secondary" size="lg">
-              <Cpu className="h-4 w-4 text-[#71717a]" />
-              View Example
+          {/* Single CTA */}
+          <Link href="/forge">
+            <Button variant="glow" size="lg" className="group mt-1">
+              Start Building Free
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Button>
-          </div>
+          </Link>
 
           {/* Example prompts */}
-          <div className="flex flex-col items-center gap-3 mt-4 w-full max-w-2xl">
-            <p className="text-xs text-[#52525b] uppercase tracking-widest">
-              Try these
-            </p>
+          <div className="flex flex-col items-center gap-3 w-full max-w-2xl mt-2">
+            <p className="text-[10px] text-[#2a2a2a] uppercase tracking-widest">Try these</p>
             <div className="flex flex-wrap justify-center gap-2">
               {examplePrompts.map((prompt, i) => (
                 <Link key={i} href="/forge">
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1e1e1e] bg-[#111]/60 text-xs text-[#71717a] hover:text-[#a1a1aa] hover:border-[#2a2a2a] hover:bg-[#161616] transition-all cursor-pointer text-left">
-                    <ChevronRight className="h-3 w-3 shrink-0 text-violet-600" />
-                    <span className="line-clamp-1">{prompt}</span>
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a1a] bg-[#0e0e0e] text-xs text-[#52525b] hover:text-[#a1a1aa] hover:border-[#262626] transition-all cursor-pointer">
+                    <ChevronRight className="h-2.5 w-2.5 shrink-0 text-violet-700" />
+                    <span>{prompt}</span>
                   </button>
                 </Link>
               ))}
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30">
-          <div className="h-8 w-px bg-gradient-to-b from-transparent to-[#555]" />
-        </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="relative py-32 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col items-center text-center gap-4 mb-16">
-            <Badge variant="violet">Features</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#fafafa]">
-              Everything in one place
+      {/* ─── Features ─── */}
+      <section id="features" className="relative py-28 px-6">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1e1e1e] to-transparent" />
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col items-center text-center gap-3 mb-14">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#fafafa]">
+              Everything from description to deploy
             </h2>
-            <p className="text-[#71717a] max-w-lg">
-              From description to deployed infrastructure — no context switching,
-              no stitching tools together.
+            <p className="text-sm text-[#52525b] max-w-md">
+              No context switching. No stitching five tools together.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {features.map((feature, i) => {
               const Icon = feature.icon;
-              const colorMap: Record<string, string> = {
-                cyan: "text-cyan-400 bg-cyan-950/40 border-cyan-900/40",
-                violet: "text-violet-400 bg-violet-950/40 border-violet-900/40",
-                yellow: "text-yellow-400 bg-yellow-950/40 border-yellow-900/40",
-                green: "text-emerald-400 bg-emerald-950/40 border-emerald-900/40",
-                default: "text-[#a1a1aa] bg-[#161616] border-[#222]",
-              };
-              const iconColor = colorMap[feature.color];
-
               return (
                 <div
                   key={i}
-                  className="group relative flex flex-col gap-4 p-6 rounded-2xl border border-[#1a1a1a] bg-[#0e0e0e] hover:border-[#2a2a2a] hover:bg-[#111] transition-all duration-300"
+                  className={`relative flex flex-col gap-3 p-5 rounded-2xl border bg-[#0c0c0c] transition-all duration-300 hover:bg-[#0f0f0f] ${feature.border} ${feature.soon ? "opacity-50" : ""}`}
                 >
-                  {/* Subtle corner glow on hover */}
-                  <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ background: "radial-gradient(circle at 10% 10%, rgba(109,40,217,0.04), transparent 60%)" }}
-                  />
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl border ${iconColor}`}>
-                    <Icon className="h-4 w-4" />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${feature.bg} ${feature.border}`}>
+                    <Icon className={`h-3.5 w-3.5 ${feature.color}`} />
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-[#fafafa]">{feature.title}</h3>
-                      <Badge variant={feature.badgeVariant}>{feature.badge}</Badge>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-[#e4e4e7]">{feature.title}</h3>
+                      {feature.soon && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded border border-[#222] text-[#52525b]">Soon</span>
+                      )}
                     </div>
-                    <p className="text-sm text-[#71717a] leading-relaxed">{feature.description}</p>
+                    <p className="text-xs text-[#52525b] leading-relaxed">{feature.description}</p>
                   </div>
                 </div>
               );
@@ -231,64 +230,73 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="relative py-32 px-6">
-        {/* Subtle divider */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#222] to-transparent" />
-
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center text-center gap-4 mb-16">
-            <Badge variant="cyan">How it works</Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#fafafa]">
-              Three steps to production
+      {/* ─── How it works ─── */}
+      <section id="how-it-works" className="relative py-28 px-6">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1e1e1e] to-transparent" />
+        <div className="max-w-3xl mx-auto">
+          <div className="flex flex-col items-center text-center gap-3 mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#fafafa]">
+              From idea to infrastructure in 5 steps
             </h2>
+            <p className="text-sm text-[#52525b] max-w-sm">
+              Every output is production-ready — not a starting point.
+            </p>
           </div>
 
-          <div className="relative flex flex-col gap-0">
-            {/* Vertical line */}
-            <div className="absolute left-[19px] top-8 bottom-8 w-px bg-gradient-to-b from-violet-800/60 via-[#222] to-transparent hidden sm:block" />
+          <div className="relative">
+            {/* Vertical connector */}
+            <div className="absolute left-5 top-6 bottom-6 w-px bg-gradient-to-b from-violet-700/50 via-violet-900/20 to-transparent hidden sm:block" />
 
-            {steps.map((step, i) => (
-              <div key={i} className="flex gap-6 pb-14 last:pb-0">
-                {/* Step number circle */}
-                <div className="relative shrink-0 hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-violet-800/60 bg-[#0e0e0e] text-xs font-mono font-bold text-violet-400 z-10">
-                  {step.number}
+            <div className="flex flex-col gap-0">
+              {steps.map((step, i) => (
+                <div key={i} className="flex gap-6 pb-10 last:pb-0">
+                  {/* Circle */}
+                  <div className="relative shrink-0 hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-[#2a2a2a] bg-[#0c0c0c] text-[10px] font-mono font-semibold text-violet-500 z-10">
+                    {step.number}
+                  </div>
+
+                  <div className="flex flex-col gap-2 pt-2 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm font-semibold text-[#fafafa]">{step.title}</h3>
+                      <span className="text-[10px] text-[#3f3f46] border border-[#222] rounded px-1.5 py-0.5">
+                        {step.detail}
+                      </span>
+                    </div>
+                    <p className="text-sm text-[#52525b] leading-relaxed">{step.description}</p>
+                    {step.output && (
+                      <p className="text-[11px] text-violet-500/70 font-mono mt-0.5">{step.output}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2 pt-1 sm:pt-2">
-                  <h3 className="text-base font-semibold text-[#fafafa]">{step.title}</h3>
-                  <p className="text-sm text-[#71717a] leading-relaxed max-w-lg">{step.description}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Banner */}
+      {/* ─── CTA ─── */}
       <section className="relative py-24 px-6">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#222] to-transparent" />
-
-        <div className="max-w-3xl mx-auto">
-          <div className="relative flex flex-col items-center text-center gap-6 p-12 rounded-3xl border border-[#1e1e1e] bg-[#0e0e0e] overflow-hidden">
-            {/* Glow */}
-            <div className="absolute inset-0 pointer-events-none"
-              style={{
-                background: "radial-gradient(ellipse at 50% 100%, rgba(109,40,217,0.15), transparent 70%)",
-              }}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1e1e1e] to-transparent" />
+        <div className="max-w-2xl mx-auto">
+          <div className="relative flex flex-col items-center text-center gap-5 p-10 rounded-3xl border border-[#1a1a1a] bg-[#0c0c0c] overflow-hidden">
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 50% 120%, rgba(109,40,217,0.12), transparent 65%)" }}
             />
-            <div className="relative z-10 flex flex-col items-center gap-6">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600 shadow-xl shadow-violet-900/40">
-                <Cpu className="h-6 w-6 text-white" />
+            <div className="relative z-10 flex flex-col items-center gap-5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-600 shadow-lg shadow-violet-900/40">
+                <Cpu className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#fafafa]">
-                Ready to forge your infrastructure?
-              </h2>
-              <p className="text-[#71717a] max-w-md">
-                No account required. Describe your stack and get your architecture
-                diagram and Terraform in seconds.
-              </p>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#fafafa]">
+                  Ready to forge your infrastructure?
+                </h2>
+                <p className="text-sm text-[#52525b]">
+                  No account required. Works in your browser. Saves locally.
+                </p>
+              </div>
               <Link href="/forge">
-                <Button variant="glow" size="xl" className="group">
+                <Button variant="glow" size="lg" className="group">
                   Open InfraForge
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Button>
@@ -298,20 +306,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative border-t border-[#1a1a1a] py-8 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* ─── Footer ─── */}
+      <footer className="relative border-t border-[#1a1a1a] py-7 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="flex h-5 w-5 items-center justify-center rounded-md bg-violet-600">
               <Cpu className="h-3 w-3 text-white" />
             </div>
-            <span className="text-xs font-medium text-[#52525b]">
-              InfraForge
-            </span>
+            <span className="text-xs font-medium text-[#3f3f46]">InfraForge</span>
           </div>
-          <p className="text-xs text-[#3f3f46]">
-            Built with Claude AI · Open Source
-          </p>
+          <p className="text-xs text-[#2a2a2a]">Open Source · No account required</p>
         </div>
       </footer>
     </div>

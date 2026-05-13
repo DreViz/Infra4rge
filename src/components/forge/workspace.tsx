@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { ChatPanel, type ChatPanelHandle } from "./chat-panel";
 import { DiagramPanel } from "./diagram-panel";
 import { CodePanel } from "./code-panel";
 import { CostPanel } from "./cost-panel";
 import { SecurityPanel } from "./security-panel";
+import { ForgeToolbar } from "./forge-toolbar";
+import { HistorySidebar } from "./history-sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Network, FileCode, DollarSign, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CostEstimate } from "@/app/api/forge/cost/route";
 import type { SecurityAudit } from "@/app/api/forge/security/route";
+import {
+  getProjects,
+  saveProject,
+  updateProject,
+  deleteProject,
+  deriveProjectName,
+  type SavedProject,
+} from "@/lib/storage";
 
 export type ForgeStage =
   | "idle"
@@ -44,9 +54,58 @@ export function Workspace() {
   const [securityLoading, setSecurityLoading] = useState(false);
   const [securityError, setSecurityError] = useState<string | null>(null);
 
+  // Project / history state
+  const [projects, setProjects] = useState<SavedProject[]>([]);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("Untitled Architecture");
+  const [isSaved, setIsSaved] = useState(false);
+  const [historySidebarOpen, setHistorySidebarOpen] = useState(false);
+  const firstMessageRef = useRef<string>("");
+
   const chatRef = useRef<ChatPanelHandle>(null);
 
-  const fetchSecurityAudit = useCallback(async (tf: string) => {
+  // Load saved projects on mount
+  useEffect(() => {
+    Promise.resolve().then(() => setProjects(getProjects()));
+  }, []);
+
+  // Auto-save when terraform + diagram are both ready
+  const autoSave = useCallback((
+    tf: string,
+    diag: DiagramData,
+    cost: CostEstimate | null,
+    security: SecurityAudit | null,
+  ) => {
+    const name = deriveProjectName(firstMessageRef.current || "Architecture");
+    setProjectName(name);
+
+    if (currentProjectId) {
+      updateProject(currentProjectId, {
+        name,
+        diagram: diag.diagram,
+        summary: diag.summary,
+        terraform: tf,
+        costEstimate: cost,
+        securityAudit: security,
+      });
+      setProjects(getProjects());
+    } else {
+      const saved = saveProject({
+        name,
+        firstMessage: firstMessageRef.current,
+        summary: diag.summary,
+        diagram: diag.diagram,
+        terraform: tf,
+        costEstimate: cost,
+        securityAudit: security,
+      });
+      setCurrentProjectId(saved.id);
+      setProjects(getProjects());
+    }
+    setIsSaved(true);
+  }, [currentProjectId]);
+
+  const fetchSecurityAudit = useCallback(async (tf: string): Promise<SecurityAudit | null> => {
     console.log("[Workspace] fetching security audit...");
     setSecurityLoading(true);
     setSecurityError(null);
@@ -59,22 +118,27 @@ export function Workspace() {
       });
       const data = await res.json();
       console.log("[Workspace] security audit received, score:", data.audit?.score);
-      if (data.error) setSecurityError(data.error);
-      else setSecurityAudit(data.audit ?? null);
+      if (data.error) { setSecurityError(data.error); return null; }
+      if (!data.audit) {
+        setSecurityError("Security audit returned no results — try regenerating Terraform.");
+        return null;
+      }
+      setSecurityAudit(data.audit);
+      return data.audit;
     } catch (err) {
       console.error("[Workspace] security fetch error:", err);
       setSecurityError("Failed to run security audit.");
+      return null;
     } finally {
       setSecurityLoading(false);
     }
   }, []);
 
-  const fetchCostEstimate = useCallback(async (tf: string) => {
+  const fetchCostEstimate = useCallback(async (tf: string): Promise<CostEstimate | null> => {
     console.log("[Workspace] fetching cost estimate...");
     setCostLoading(true);
     setCostError(null);
     setCostEstimate(null);
-
     try {
       const res = await fetch("/api/forge/cost", {
         method: "POST",
@@ -83,11 +147,17 @@ export function Workspace() {
       });
       const data = await res.json();
       console.log("[Workspace] cost estimate received:", data.estimate?.totalMonthly);
-      if (data.error) setCostError(data.error);
-      else setCostEstimate(data.estimate ?? null);
+      if (data.error) { setCostError(data.error); return null; }
+      if (!data.estimate) {
+        setCostError("Cost estimation returned no results — try regenerating Terraform.");
+        return null;
+      }
+      setCostEstimate(data.estimate);
+      return data.estimate;
     } catch (err) {
       console.error("[Workspace] cost fetch error:", err);
       setCostError("Failed to estimate cost.");
+      return null;
     } finally {
       setCostLoading(false);
     }
@@ -99,6 +169,7 @@ export function Workspace() {
     setStage("diagram_ready");
     setIsAILoading(false);
     setActiveTab("diagram");
+    setIsSaved(false);
     if (isRefinement) {
       setTerraform(null);
       setCostEstimate(null);
@@ -107,15 +178,29 @@ export function Workspace() {
     }
   };
 
-  const handleTerraformReady = (tf: string) => {
+  const handleTerraformReady = (tf: string, diag: DiagramData) => {
     console.log("[Workspace] terraform ready, length:", tf.length);
     setTerraform(tf);
     setStage("complete");
     setIsAILoading(false);
     setActiveTab("code");
-    // Auto-fetch cost + security in background (parallel)
-    fetchCostEstimate(tf);
-    fetchSecurityAudit(tf);
+
+    // Auto-fetch cost + security in parallel, then save when both finish
+    let cost: CostEstimate | null = null;
+    let security: SecurityAudit | null = null;
+    let done = 0;
+
+    const trySave = () => {
+      done++;
+      if (done === 2) autoSave(tf, diag, cost, security);
+    };
+
+    fetchCostEstimate(tf).then((c) => { cost = c ?? null; trySave(); });
+    fetchSecurityAudit(tf).then((s) => { security = s ?? null; trySave(); });
+  };
+
+  const handleFirstMessage = (msg: string) => {
+    if (!firstMessageRef.current) firstMessageRef.current = msg;
   };
 
   const handleGenerating = (isGenerating: boolean) => {
@@ -149,6 +234,60 @@ export function Workspace() {
     );
   };
 
+  const handleLoadProject = (project: SavedProject) => {
+    setDiagramData({ diagram: project.diagram, summary: project.summary });
+    setTerraform(project.terraform);
+    setCostEstimate(project.costEstimate);
+    setSecurityAudit(project.securityAudit);
+    setStage("complete");
+    setCurrentProjectId(project.id);
+    setProjectName(project.name);
+    setIsSaved(true);
+    firstMessageRef.current = project.firstMessage;
+    setActiveTab("diagram");
+    setHistorySidebarOpen(false);
+    setIterationCount(0);
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setProjects(getProjects());
+    if (id === currentProjectId) {
+      setCurrentProjectId(null);
+      setIsSaved(false);
+    }
+  };
+
+  const handleRename = (name: string) => {
+    setProjectName(name);
+    if (currentProjectId) {
+      updateProject(currentProjectId, { name });
+      setProjects(getProjects());
+    }
+  };
+
+  const handleExportZip = async () => {
+    if (!terraform || !diagramData) return;
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+
+    // Add terraform file
+    zip.file("main.tf", terraform);
+
+    // Add diagram as SVG text
+    zip.file("architecture.mmd", diagramData.diagram);
+
+    // Add a README
+    zip.file("README.md", `# ${projectName}\n\n${diagramData.summary}\n\n---\nGenerated by InfraForge\n`);
+
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${projectName.replace(/\s+/g, "-").toLowerCase()}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleReset = () => {
     console.log("[Workspace] reset");
     setStage("idle");
@@ -162,6 +301,10 @@ export function Workspace() {
     setSecurityAudit(null);
     setSecurityError(null);
     setSecurityLoading(false);
+    setCurrentProjectId(null);
+    setProjectName("Untitled Architecture");
+    setIsSaved(false);
+    firstMessageRef.current = "";
     setActiveTab("diagram");
   };
 
@@ -193,13 +336,34 @@ export function Workspace() {
   ];
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
+      <ForgeToolbar
+        projectName={projectName}
+        isSaved={isSaved}
+        canExport={!!terraform}
+        historyCount={projects.length}
+        onRename={handleRename}
+        onHistoryOpen={() => setHistorySidebarOpen(true)}
+        onExportZip={handleExportZip}
+      />
+
+      <HistorySidebar
+        open={historySidebarOpen}
+        projects={projects}
+        currentProjectId={currentProjectId}
+        onClose={() => setHistorySidebarOpen(false)}
+        onLoad={handleLoadProject}
+        onDelete={handleDeleteProject}
+      />
+
+      <div className="flex flex-1 overflow-hidden">
       <div className="w-[380px] shrink-0 flex flex-col border-r border-[#1a1a1a] overflow-hidden">
         <ChatPanel
           ref={chatRef}
           onGenerating={handleGenerating}
           onDiagramReady={handleDiagramReady}
           onTerraformReady={handleTerraformReady}
+          onFirstMessage={handleFirstMessage}
           onReset={handleReset}
         />
       </div>
@@ -291,6 +455,7 @@ export function Workspace() {
             />
           )}
         </div>
+      </div>
       </div>
     </div>
   );

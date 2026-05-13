@@ -47,12 +47,13 @@ export interface ChatPanelHandle {
 interface ChatPanelProps {
   onGenerating: (generating: boolean) => void;
   onDiagramReady: (data: DiagramData, isRefinement: boolean) => void;
-  onTerraformReady: (terraform: string) => void;
+  onTerraformReady: (terraform: string, diagram: DiagramData) => void;
+  onFirstMessage: (msg: string) => void;
   onReset: () => void;
 }
 
 export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
-  function ChatPanel({ onGenerating, onDiagramReady, onTerraformReady, onReset }, ref) {
+  function ChatPanel({ onGenerating, onDiagramReady, onTerraformReady, onFirstMessage, onReset }, ref) {
     const [messages, setMessages] = useState<Message[]>([WELCOME]);
     const [history, setHistory] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
@@ -60,6 +61,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
     const [showRefinementChips, setShowRefinementChips] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const msgCounter = useRef(0);
+    const currentDiagramRef = useRef<DiagramData | null>(null);
 
     useEffect(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -67,6 +69,9 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
 
     const sendMessage = async (text: string) => {
       if (!text.trim() || isLoading) return;
+
+      // Capture the very first user message for project naming
+      if (history.length === 0) onFirstMessage(text.trim());
 
       const msgId = `msg-${++msgCounter.current}`;
       const userMsg: Message = {
@@ -134,6 +139,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
             },
           ]);
 
+          currentDiagramRef.current = { summary, diagram };
           onDiagramReady({ summary, diagram }, isRefinement);
         }
 
@@ -150,7 +156,10 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
               content: "Terraform infrastructure code has been generated for the above architecture.",
             },
           ]);
-          onTerraformReady(data.terraform ?? "");
+          onTerraformReady(
+            data.terraform ?? "",
+            currentDiagramRef.current ?? { summary: "", diagram: "" }
+          );
           setShowRefinementChips(true);
         }
       } catch (err) {
@@ -175,6 +184,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
       setInput("");
       setIsLoading(false);
       setShowRefinementChips(false);
+      currentDiagramRef.current = null;
       onReset();
     };
 

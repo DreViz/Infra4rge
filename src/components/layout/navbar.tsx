@@ -13,7 +13,7 @@ export function Navbar({ minimal = false }: NavbarProps) {
     <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-[#1a1a1a] bg-[#080808]/80 backdrop-blur-md">
       <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-600 shadow-lg shadow-violet-900/40">
             <Cpu className="h-4 w-4 text-white" />
           </div>
@@ -24,30 +24,18 @@ export function Navbar({ minimal = false }: NavbarProps) {
 
         {!minimal && (
           <nav className="hidden md:flex items-center gap-6">
-            <Link
-              href="#features"
-              className="text-sm text-[#71717a] hover:text-[#fafafa] transition-colors"
-            >
+            <Link href="#features" className="text-sm text-[#71717a] hover:text-[#fafafa] transition-colors">
               Features
             </Link>
-            <Link
-              href="#how-it-works"
-              className="text-sm text-[#71717a] hover:text-[#fafafa] transition-colors"
-            >
+            <Link href="#how-it-works" className="text-sm text-[#71717a] hover:text-[#fafafa] transition-colors">
               How it works
-            </Link>
-            <Link
-              href="#"
-              className="text-sm text-[#71717a] hover:text-[#fafafa] transition-colors"
-            >
-              Docs
             </Link>
           </nav>
         )}
 
         <div className="flex items-center gap-3">
           <a
-            href="https://github.com"
+            href="https://github.com/DreViz/Infra4rge"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg text-[#71717a] hover:text-[#fafafa] hover:bg-[#161616] transition-colors"

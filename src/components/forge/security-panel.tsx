@@ -325,13 +325,13 @@ function LoadingState() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 px-8">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-950/20 border border-emerald-900/30">
-        <Shield className="h-6 w-6 text-emerald-400" />
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#111] border border-[#1e1e1e]">
+        <Shield className="h-6 w-6 text-[#3f3f46]" />
       </div>
       <div className="flex flex-col items-center gap-2 text-center">
         <h3 className="text-sm font-semibold text-[#fafafa]">Security Audit</h3>
-        <p className="text-sm text-[#71717a] max-w-xs leading-relaxed">
-          Generate Terraform first — security scan will run automatically.
+        <p className="text-sm text-[#52525b] max-w-xs leading-relaxed">
+          Confirm the architecture diagram to generate Terraform — the security audit runs automatically after.
         </p>
       </div>
     </div>
