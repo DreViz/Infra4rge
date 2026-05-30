@@ -9,7 +9,7 @@ import { SecurityPanel } from "./security-panel";
 import { ForgeToolbar } from "./forge-toolbar";
 import { HistorySidebar } from "./history-sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Network, FileCode, DollarSign, Shield } from "lucide-react";
+import { Network, FileCode, DollarSign, Shield, MessageSquare, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CostEstimate } from "@/app/api/forge/cost/route";
 import type { SecurityAudit } from "@/app/api/forge/security/route";
@@ -60,6 +60,7 @@ export function Workspace() {
   const [projectName, setProjectName] = useState("Untitled Architecture");
   const [isSaved, setIsSaved] = useState(false);
   const [historySidebarOpen, setHistorySidebarOpen] = useState(false);
+  const [mobileView, setMobileView] = useState<"chat" | "output">("chat");
   const firstMessageRef = useRef<string>("");
 
   const chatRef = useRef<ChatPanelHandle>(null);
@@ -162,6 +163,7 @@ export function Workspace() {
     setStage("diagram_ready");
     setIsAILoading(false);
     setActiveTab("diagram");
+    setMobileView("output");
     setIsSaved(false);
     if (isRefinement) {
       setTerraform(null);
@@ -176,6 +178,7 @@ export function Workspace() {
     setStage("complete");
     setIsAILoading(false);
     setActiveTab("code");
+    setMobileView("output");
 
     let cost: CostEstimate | null = null;
     let security: SecurityAudit | null = null;
@@ -235,6 +238,7 @@ export function Workspace() {
     setActiveTab("diagram");
     setHistorySidebarOpen(false);
     setIterationCount(0);
+    setMobileView("output");
   };
 
   const handleDeleteProject = (id: string) => {
@@ -338,9 +342,12 @@ export function Workspace() {
         onDelete={handleDeleteProject}
       />
 
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Chat panel */}
-        <div className="w-full md:w-[380px] h-[45dvh] md:h-full shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-border/40 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden relative">
+        {/* Chat panel — hidden on mobile when viewing output */}
+        <div className={cn(
+          "w-full md:w-[380px] md:h-full shrink-0 flex flex-col md:border-r border-border/40 overflow-hidden",
+          mobileView === "output" ? "hidden md:flex" : "flex h-full md:h-full"
+        )}>
           <ChatPanel
             ref={chatRef}
             onGenerating={handleGenerating}
@@ -351,8 +358,11 @@ export function Workspace() {
           />
         </div>
 
-        {/* Right panel */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Right panel — hidden on mobile when viewing chat */}
+        <div className={cn(
+          "flex-1 flex flex-col min-w-0 overflow-hidden",
+          mobileView === "chat" ? "hidden md:flex" : "flex"
+        )}>
           {/* Tab bar with glassmorphism */}
           <div className="flex items-center gap-1 px-2 md:px-4 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0 overflow-x-auto">
             {tabs.map((tab) => {
@@ -441,6 +451,33 @@ export function Workspace() {
             )}
           </div>
         </div>
+
+        {/* Mobile bottom toggle bar */}
+        {(stage === "diagram_ready" || stage === "complete" || stage === "generating_terraform") && (
+          <div className="flex md:hidden border-t border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
+            <button
+              onClick={() => setMobileView("chat")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3 text-xs font-medium transition-colors",
+                mobileView === "chat" ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Chat
+            </button>
+            <div className="w-px bg-border/40" />
+            <button
+              onClick={() => setMobileView("output")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3 text-xs font-medium transition-colors",
+                mobileView === "output" ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <Eye className="h-4 w-4" />
+              Output
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
