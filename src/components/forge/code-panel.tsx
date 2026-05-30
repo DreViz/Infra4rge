@@ -39,10 +39,10 @@ export function CodePanel({ isGenerating, terraform }: CodePanelProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-2">
-          <FileCode className="h-3.5 w-3.5 text-[#71717a]" />
-          <span className="text-xs font-medium text-[#a1a1aa]">main.tf</span>
+          <FileCode className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">main.tf</span>
           {isGenerating && (
             <Badge variant="yellow">
               <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
@@ -70,19 +70,21 @@ export function CodePanel({ isGenerating, terraform }: CodePanelProps) {
         {isGenerating ? (
           <div className="flex flex-col items-center justify-center h-48 gap-4">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:0ms]" />
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:150ms]" />
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-bounce [animation-delay:300ms]" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+              <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
             </div>
-            <p className="text-sm text-[#52525b]">Writing Terraform...</p>
+            <p className="text-sm text-muted-foreground">Writing Terraform...</p>
           </div>
         ) : !terraform ? (
           <div className="flex flex-col items-center justify-center h-48 gap-3">
-            <Code className="h-8 w-8 text-[#222]" />
-            <p className="text-sm text-[#3f3f46]">Terraform will appear here after generation</p>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card border border-border/40">
+              <Code className="h-6 w-6 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm text-muted-foreground">Terraform will appear here after generation</p>
           </div>
         ) : (
-          <pre className="code-block p-5 text-[#a1a1aa] overflow-x-auto">
+          <pre className="code-block p-5 text-muted-foreground overflow-x-auto">
             <TerraformHighlight code={code} />
           </pre>
         )}
@@ -90,15 +92,15 @@ export function CodePanel({ isGenerating, terraform }: CodePanelProps) {
 
       {/* Footer */}
       {terraform && !isGenerating && (
-        <div className="px-4 py-3 border-t border-[#1a1a1a] flex items-center gap-4 shrink-0">
+        <div className="px-4 py-3 border-t border-border/40 flex items-center gap-4 shrink-0">
           {resourceCount > 0 && (
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] text-[#3f3f46] uppercase tracking-widest">Resources</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Resources</span>
               <Badge variant="default">{resourceCount}</Badge>
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#3f3f46] uppercase tracking-widest">Lines</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Lines</span>
             <Badge variant="default">{lineCount}</Badge>
           </div>
         </div>
@@ -113,7 +115,7 @@ function TerraformHighlight({ code }: { code: string }) {
     <>
       {lines.map((line, i) => (
         <div key={i} className="flex">
-          <span className="select-none w-10 shrink-0 text-right pr-4 text-[#3f3f46] text-[11px] leading-6">
+          <span className="select-none w-10 shrink-0 text-right pr-4 text-muted-foreground/40 text-[11px] leading-6">
             {i + 1}
           </span>
           <span className="leading-6 whitespace-pre">
@@ -127,24 +129,24 @@ function TerraformHighlight({ code }: { code: string }) {
 
 function HighlightLine({ line }: { line: string }) {
   if (line.trim().startsWith("#")) {
-    return <span className="text-[#52525b]">{line}</span>;
+    return <span className="text-muted-foreground/50">{line}</span>;
   }
   const blockMatch = line.match(/^(resource|variable|provider|data|output|terraform|module|locals)\s+"([^"]+)"(?:\s+"([^"]+)")?/);
   if (blockMatch) {
     return (
       <>
-        <span className="text-violet-400">{blockMatch[1]}</span>
-        <span className="text-[#71717a]">{" \""}</span>
-        <span className="text-cyan-400">{blockMatch[2]}</span>
-        <span className="text-[#71717a]">{"\" "}</span>
+        <span className="text-primary">{blockMatch[1]}</span>
+        <span className="text-muted-foreground/60">{" \""}</span>
+        <span className="text-accent">{blockMatch[2]}</span>
+        <span className="text-muted-foreground/60">{"\" "}</span>
         {blockMatch[3] && (
           <>
-            <span className="text-[#71717a]">{"\""}</span>
+            <span className="text-muted-foreground/60">{"\""}</span>
             <span className="text-emerald-400">{blockMatch[3]}</span>
-            <span className="text-[#71717a]">{"\" "}</span>
+            <span className="text-muted-foreground/60">{"\" "}</span>
           </>
         )}
-        <span className="text-[#71717a]">{"{"}</span>
+        <span className="text-muted-foreground/60">{"{"}</span>
       </>
     );
   }
@@ -153,18 +155,18 @@ function HighlightLine({ line }: { line: string }) {
     return (
       <>
         <span>{kvMatch[1]}</span>
-        <span className="text-[#e4e4e7]">{kvMatch[2]}</span>
-        <span className="text-[#71717a]">{" = "}</span>
+        <span className="text-card-foreground">{kvMatch[2]}</span>
+        <span className="text-muted-foreground/60">{" = "}</span>
         <ValueHighlight value={kvMatch[3]} />
       </>
     );
   }
-  return <span className="text-[#a1a1aa]">{line}</span>;
+  return <span className="text-muted-foreground">{line}</span>;
 }
 
 function ValueHighlight({ value }: { value: string }) {
   if (value.startsWith('"') || value.includes("${")) return <span className="text-emerald-400">{value}</span>;
-  if (!isNaN(Number(value))) return <span className="text-cyan-300">{value}</span>;
+  if (!isNaN(Number(value))) return <span className="text-accent">{value}</span>;
   if (value === "true" || value === "false") return <span className="text-yellow-400">{value}</span>;
-  return <span className="text-[#a1a1aa]">{value}</span>;
+  return <span className="text-muted-foreground">{value}</span>;
 }

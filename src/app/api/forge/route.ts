@@ -32,12 +32,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const response = await glm.messages.create({
+    const stream = glm.messages.stream({
       model: GLM_MODEL,
-      max_tokens: 16000,
+      max_tokens: 32000,
       system: SYSTEM_PROMPT,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
+
+    const response = await stream.finalMessage();
 
     const raw =
       response.content[0]?.type === "text" ? response.content[0].text : "";
@@ -45,9 +47,14 @@ export async function POST(req: NextRequest) {
 
     console.log("[forge/route] stop_reason:", stopReason, "| raw length:", raw.length);
 
-    // Warn if the model hit the token limit mid-response
     if (stopReason === "max_tokens") {
-      console.warn("[forge/route] response was truncated — increase max_tokens or simplify prompt");
+      console.warn("[forge/route] response was truncated at", raw.length, "chars");
+      // Try to salvage terraform from truncated response
+      const salvaged = trySalvageTerraform(raw);
+      if (salvaged) {
+        console.log("[forge/route] salvaged terraform from truncated response, length:", salvaged.length);
+        return NextResponse.json({ type: "terraform", terraform: salvaged, raw });
+      }
       return NextResponse.json({
         type: "error",
         content: "The response was too long and got cut off. Try asking for a simpler architecture, or say \"generate terraform without comments\" to reduce output size.",
@@ -70,7 +77,7 @@ export async function POST(req: NextRequest) {
 function parseAIResponse(raw: string): ForgeResponse {
   let text = raw.trim();
 
-  // Handle multiple code fences — pick the largest one (likely terraform)
+  // Handle code fences — pick the largest one (likely terraform)
   const allFences = [...text.matchAll(/```(?:json|hcl|terraform)?\s*([\s\S]*?)```/g)];
   if (allFences.length > 0) {
     const largest = allFences.reduce((a, b) =>
@@ -78,7 +85,6 @@ function parseAIResponse(raw: string): ForgeResponse {
     );
     const extracted = largest[1]?.trim() ?? "";
 
-    // If extracted content looks like HCL/Terraform, return it directly
     if (looksLikeTerraform(extracted)) {
       console.log("[forge/route] detected terraform in code fence, length:", extracted.length);
       return { type: "terraform", terraform: extracted };
@@ -87,54 +93,90 @@ function parseAIResponse(raw: string): ForgeResponse {
     text = extracted;
   }
 
-  // Strip language hint prefix like "hcl\n" that sometimes leaks in
+  // Strip language hint prefix
   if (/^hcl\n/.test(text)) text = text.slice(4);
 
-  // If the raw text itself looks like terraform (no JSON wrapper at all)
+  // Raw terraform (no JSON wrapper)
   if (looksLikeTerraform(text)) {
     console.log("[forge/route] detected raw terraform content, length:", text.length);
     return { type: "terraform", terraform: text };
   }
 
+  // Attempt 1: Parse raw JSON
   try {
-    const parsed = JSON.parse(text);
+    return handleParsedJSON(JSON.parse(text));
+  } catch {}
 
-    const type: string = parsed.type ?? "";
-    const normalizedType = type.startsWith("question") ? "question" : type;
+  // Attempt 2: Extract JSON object from surrounding text
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return handleParsedJSON(JSON.parse(jsonMatch[0]));
+    } catch {}
+  }
 
-    let content: string | undefined = parsed.content;
-    if (!content && Array.isArray(parsed.questions)) {
-      content = parsed.questions
-        .map((q: string, i: number) => `${i + 1}. ${q}`)
-        .join("\n");
-    }
-    if (!content && Array.isArray(parsed.content)) {
-      content = (parsed.content as string[])
-        .map((q, i) => `${i + 1}. ${q}`)
-        .join("\n");
-    }
+  // Attempt 3: Extract terraform from inside broken JSON
+  const tfSalvage = trySalvageTerraform(text);
+  if (tfSalvage) {
+    console.log("[forge/route] salvaged terraform from broken JSON, length:", tfSalvage.length);
+    return { type: "terraform", terraform: tfSalvage };
+  }
 
-    if (normalizedType === "question") return { type: "question", content };
-    if (normalizedType === "diagram") return { type: "diagram", summary: parsed.summary, diagram: parsed.diagram };
-    if (normalizedType === "terraform") {
-      // Strip "hcl\n" prefix from terraform field if present
-      const tf = (parsed.terraform ?? "").replace(/^hcl\n/, "");
-      return { type: "terraform", terraform: tf };
-    }
+  console.error("[forge/route] all parse attempts failed, raw length:", text.length);
 
-  } catch (e) {
-    console.error("[forge/route] JSON parse failed:", e);
-
-    // Detect truncated JSON — give a helpful message instead of dumping raw text
-    if (text.startsWith("{")) {
-      return {
-        type: "error",
-        content: "The response was cut off before it could be parsed. Try saying \"generate terraform without comments\" to keep the output shorter.",
-      };
-    }
+  if (text.startsWith("{")) {
+    return {
+      type: "error",
+      content: "The response was cut off before it could be parsed. Try saying \"generate terraform without comments\" to keep the output shorter.",
+    };
   }
 
   return { type: "question", content: text };
+}
+
+/**
+ * Try to extract terraform from a broken or truncated JSON response.
+ * Looks for the terraform field value by finding HCL patterns.
+ */
+function trySalvageTerraform(text: string): string | null {
+  // Strategy 1: Find "terraform": "..." and extract the HCL inside
+  const tfFieldMatch = text.match(/"terraform"\s*:\s*"([\s\S]*)/);
+  if (tfFieldMatch) {
+    let tf = tfFieldMatch[1];
+    // Remove trailing JSON artifacts (unfinished string)
+    tf = tf.replace(/"\s*[}\]]*\s*$/, "");
+    // Unescape JSON string escapes
+    tf = tf
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t")
+      .replace(/\\\"/g, '"')
+      .replace(/\\\\/g, "\\");
+    tf = tf.trim();
+    if (looksLikeTerraform(tf)) return tf;
+  }
+
+  // Strategy 2: Find raw HCL patterns in the text (resource blocks, etc.)
+  const resourceBlocks = text.match(/resource\s+"[\w_]+"\s+"[\w_-]+"\s*\{[\s\S]*?(?=\nresource|\nprovider|\nvariable|\noutput|\nmodule|$)/g);
+  if (resourceBlocks && resourceBlocks.length >= 2) {
+    const combined = resourceBlocks.join("\n\n");
+    if (looksLikeTerraform(combined)) return combined;
+  }
+
+  // Strategy 3: Look for terraform block start to end
+  const hclMatch = text.match(/(terraform\s*\{[\s\S]*|(?:resource|provider|variable|module)\s+"[\s\S]*)/);
+  if (hclMatch) {
+    let tf = hclMatch[1]
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t")
+      .replace(/\\\"/g, '"')
+      .replace(/\\\\/g, "\\")
+      .trim();
+    // Remove trailing JSON artifacts
+    tf = tf.replace(/"\s*[}\]]*\s*$/, "");
+    if (looksLikeTerraform(tf)) return tf;
+  }
+
+  return null;
 }
 
 function looksLikeTerraform(text: string): boolean {
@@ -149,4 +191,30 @@ function looksLikeTerraform(text: string): boolean {
     /^output\s+"/m,
   ];
   return terraformPatterns.some((p) => p.test(text));
+}
+
+function handleParsedJSON(parsed: Record<string, unknown>): ForgeResponse {
+  const type: string = (parsed.type as string) ?? "";
+  const normalizedType = type.startsWith("question") ? "question" : type;
+
+  let content: string | undefined = parsed.content as string;
+  if (!content && Array.isArray(parsed.questions)) {
+    content = (parsed.questions as string[])
+      .map((q, i) => `${i + 1}. ${q}`)
+      .join("\n");
+  }
+  if (!content && Array.isArray(parsed.content)) {
+    content = (parsed.content as string[])
+      .map((q, i) => `${i + 1}. ${q}`)
+      .join("\n");
+  }
+
+  if (normalizedType === "question") return { type: "question", content };
+  if (normalizedType === "diagram") return { type: "diagram", summary: parsed.summary as string, diagram: parsed.diagram as string };
+  if (normalizedType === "terraform") {
+    const tf = ((parsed.terraform as string) ?? "").replace(/^hcl\n/, "");
+    return { type: "terraform", terraform: tf };
+  }
+
+  return { type: "question", content: content ?? "" };
 }

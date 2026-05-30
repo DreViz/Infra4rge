@@ -50,7 +50,7 @@ export function ForgeToolbar({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a1a1a] bg-[#080808] shrink-0">
+    <div className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
       {/* Project name */}
       <div className="flex items-center gap-2 min-w-0">
         {editing ? (
@@ -60,12 +60,12 @@ export function ForgeToolbar({
             onChange={(e) => setDraft(e.target.value)}
             onBlur={commitRename}
             onKeyDown={handleKeyDown}
-            className="bg-[#111] border border-violet-600/40 rounded-md px-2 py-0.5 text-xs text-[#fafafa] outline-none w-56 focus:ring-1 focus:ring-violet-600/40"
+            className="bg-input/50 border border-primary/30 rounded-md px-2 py-0.5 text-xs text-foreground outline-none w-56 focus:ring-1 focus:ring-primary/40"
           />
         ) : (
           <button
             onClick={() => setEditing(true)}
-            className="group flex items-center gap-1.5 text-xs text-[#a1a1aa] hover:text-[#fafafa] transition-colors truncate max-w-[220px]"
+            className="group flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors truncate max-w-[220px]"
           >
             <span className="truncate">{projectName}</span>
             <Pencil className="h-2.5 w-2.5 shrink-0 opacity-0 group-hover:opacity-50 transition-opacity" />
@@ -73,8 +73,8 @@ export function ForgeToolbar({
         )}
 
         {isSaved && (
-          <div className="flex items-center gap-1 text-[10px] text-[#3f3f46]">
-            <Check className="h-2.5 w-2.5 text-emerald-600" />
+          <div className="flex items-center gap-1 text-[10px] text-emerald-500/60">
+            <Check className="h-2.5 w-2.5" />
             <span>Saved</span>
           </div>
         )}
@@ -98,7 +98,7 @@ export function ForgeToolbar({
           variant="ghost"
           size="sm"
           onClick={onHistoryOpen}
-          className={cn("h-7 gap-1.5 text-[11px]", historyCount > 0 && "text-[#a1a1aa]")}
+          className={cn("h-7 gap-1.5 text-[11px]", historyCount > 0 && "text-muted-foreground")}
         >
           <Clock className="h-3 w-3" />
           History

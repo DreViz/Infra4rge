@@ -8,9 +8,9 @@ export const metadata = {
 
 export default function ForgePage() {
   return (
-    <div className="flex flex-col h-full bg-[#080808]">
+    <div className="flex flex-col h-dvh bg-background">
       <Navbar minimal />
-      <main className="flex-1 overflow-hidden" style={{ marginTop: "56px" }}>
+      <main className="flex-1 overflow-hidden mt-14">
         <Workspace />
       </main>
     </div>

@@ -98,6 +98,15 @@ Rules for refinement:
 
 ## Mermaid Diagram Rules
 
+CRITICAL SYNTAX RULES — violating these causes render failure:
+- Node IDs must be alphanumeric only (no spaces, no hyphens, no dots). Use CamelCase: S3RawData, not "S3 Raw Data" or "s3-raw-data"
+- Node labels with spaces MUST use double quotes: S3RawData["S3 Raw Data"], NOT S3Raw[S3 Raw Data]
+- NEVER put spaces in node IDs — ALB["Load Balancer"] is correct, "ALB Load"["Load Balancer"] is WRONG
+- Keep node IDs short and descriptive: ALB, ECS, RDS, Redis, S3Uploads
+- Arrow syntax must be: A --> B or A -->|"label"| B — no spaces in arrow itself
+- Every node that appears in a class assignment MUST first be defined in the diagram
+- Test your diagram mentally: if a line has a bare [ or ] without quotes around the label, it will fail
+
 ALWAYS use this EXACT classDef block at the end of every diagram — no exceptions:
 
 classDef compute fill:#c4b5fd,color:#1a1a1a,stroke:#7c3aed,stroke-width:2px

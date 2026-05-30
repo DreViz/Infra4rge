@@ -17,9 +17,9 @@ interface Message {
 }
 
 const EXAMPLE_PROMPTS = [
-  "A SaaS project management tool like Linear — Next.js frontend, FastAPI backend, PostgreSQL, Redis on AWS, ~5000 users, cost-optimized",
-  "Microservices e-commerce platform on GCP with Kubernetes, API gateway, Pub/Sub queue, ~50K daily users",
-  "Real-time ML inference API on AWS with GPU instances, S3 data lake, auto-scaling, low-latency serving",
+  "SaaS app on AWS — Next.js, FastAPI, Postgres, Redis, ~5K users",
+  "E-commerce on GCP — Cloud Run, Firestore, Pub/Sub, CDN",
+  "ML API on AWS — GPU inference, S3 data lake, auto-scaling",
 ];
 
 const REFINEMENT_CHIPS = [
@@ -70,19 +70,11 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
     const sendMessage = async (text: string) => {
       if (!text.trim() || isLoading) return;
 
-      // Capture the very first user message for project naming
       if (history.length === 0) onFirstMessage(text.trim());
 
       const msgId = `msg-${++msgCounter.current}`;
-      const userMsg: Message = {
-        id: msgId,
-        role: "user",
-        content: text.trim(),
-      };
-      const newHistory: ChatMessage[] = [
-        ...history,
-        { role: "user", content: text.trim() },
-      ];
+      const userMsg: Message = { id: msgId, role: "user", content: text.trim() };
+      const newHistory: ChatMessage[] = [...history, { role: "user", content: text.trim() }];
 
       setMessages((prev) => [...prev, userMsg]);
       setHistory(newHistory);
@@ -92,29 +84,22 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
       onGenerating(true);
 
       try {
-        console.log("[Chat] sending to API, history length:", newHistory.length);
-
         const res = await fetch("/api/forge", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messages: newHistory }),
         });
 
-        console.log("[Chat] API status:", res.status);
         const data: ForgeResponse = await res.json();
-        console.log("[Chat] response type:", data.type, "| has diagram:", !!data.diagram, "| has terraform:", !!data.terraform);
-
         onGenerating(false);
 
         if (data.type === "error") {
-          console.error("[Chat] error from API:", data.content);
           appendAssistant(data.content ?? "Something went wrong. Please try again.");
           setIsLoading(false);
           return;
         }
 
         if (data.type === "question") {
-          console.log("[Chat] question received, content length:", data.content?.length);
           const content = data.content ?? "";
           appendAssistant(content);
           setHistory((h) => [...h, { role: "assistant", content }]);
@@ -124,7 +109,6 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
           const summary = data.summary ?? "Architecture designed.";
           const diagram = data.diagram ?? "";
           const isRefinement = history.some((m) => m.content.includes("Mermaid diagram:"));
-          console.log("[Chat] diagram received, isRefinement:", isRefinement, "| diagram length:", diagram.length);
 
           appendAssistant(
             `${summary}\n\nReview the diagram on the right. When you're happy with it, click **Confirm** or say "looks good".`,
@@ -133,10 +117,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
 
           setHistory((h) => [
             ...h,
-            {
-              role: "assistant",
-              content: `Architecture designed.\nSummary: ${summary}\n\nMermaid diagram:\n${diagram}`,
-            },
+            { role: "assistant", content: `Architecture designed.\nSummary: ${summary}\n\nMermaid diagram:\n${diagram}` },
           ]);
 
           currentDiagramRef.current = { summary, diagram };
@@ -144,17 +125,13 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
         }
 
         if (data.type === "terraform") {
-          console.log("[Chat] terraform received, length:", data.terraform?.length);
           appendAssistant(
             "Terraform is ready. Switch to the Terraform tab to copy or download it.",
             "terraform"
           );
           setHistory((h) => [
             ...h,
-            {
-              role: "assistant",
-              content: "Terraform infrastructure code has been generated for the above architecture.",
-            },
+            { role: "assistant", content: "Terraform infrastructure code has been generated for the above architecture." },
           ]);
           onTerraformReady(
             data.terraform ?? "",
@@ -162,8 +139,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
           );
           setShowRefinementChips(true);
         }
-      } catch (err) {
-        console.error("[Chat] fetch error:", err);
+      } catch {
         onGenerating(false);
         appendAssistant("Network error. Please check your connection and try again.");
       }
@@ -196,17 +172,17 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
     };
 
     return (
-      <div className="flex flex-col h-full bg-[#0a0a0a]">
+      <div className="flex flex-col h-full bg-card/30">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-3.5 w-3.5 text-violet-400" />
-            <span className="text-xs font-medium text-[#a1a1aa]">AI Architect</span>
-            <Badge variant="violet" className="text-[9px]">GLM-5</Badge>
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-medium text-muted-foreground">AI Architect</span>
+            <Badge variant="default" className="text-[9px]">GLM-5</Badge>
           </div>
           <button
             onClick={handleReset}
-            className="flex items-center gap-1 text-xs text-[#52525b] hover:text-[#a1a1aa] transition-colors"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <RotateCcw className="h-3 w-3" />
             Reset
@@ -222,10 +198,10 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Example prompts — only at very start */}
+        {/* Example prompts */}
         {messages.length === 1 && !isLoading && (
           <div className="px-4 pb-3">
-            <p className="text-[10px] text-[#3f3f46] uppercase tracking-widest mb-2">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
               Examples
             </p>
             <div className="flex flex-col gap-1.5">
@@ -233,10 +209,10 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
                 <button
                   key={i}
                   onClick={() => sendMessage(prompt)}
-                  className="flex items-start gap-2 p-2.5 rounded-lg border border-[#1a1a1a] bg-[#0e0e0e] hover:bg-[#111] hover:border-[#2a2a2a] text-left transition-all group"
+                  className="flex items-start gap-2 p-2.5 rounded-lg border border-border/40 bg-card/30 hover:bg-card hover:border-primary/30 text-left transition-all group"
                 >
-                  <ChevronRight className="h-3 w-3 text-violet-600 shrink-0 mt-0.5" />
-                  <span className="text-xs text-[#71717a] group-hover:text-[#a1a1aa] transition-colors leading-relaxed">
+                  <ChevronRight className="h-3 w-3 text-primary/60 shrink-0 mt-0.5" />
+                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed">
                     {prompt}
                   </span>
                 </button>
@@ -245,12 +221,12 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
           </div>
         )}
 
-        {/* Refinement chips — shown after terraform is generated */}
+        {/* Refinement chips */}
         {showRefinementChips && !isLoading && (
           <div className="px-4 pb-3">
             <div className="flex items-center gap-1.5 mb-2">
-              <Zap className="h-3 w-3 text-violet-400" />
-              <p className="text-[10px] text-[#3f3f46] uppercase tracking-widest">
+              <Zap className="h-3 w-3 text-primary" />
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                 Refine architecture
               </p>
             </div>
@@ -259,7 +235,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
                 <button
                   key={i}
                   onClick={() => sendMessage(chip)}
-                  className="px-2.5 py-1 rounded-lg border border-[#1e1e1e] bg-[#0e0e0e] hover:bg-[#111] hover:border-violet-800/40 text-xs text-[#71717a] hover:text-violet-300 transition-all"
+                  className="px-2.5 py-1 rounded-lg border border-border/40 bg-card/30 hover:bg-card hover:border-primary/40 text-xs text-muted-foreground hover:text-primary transition-all"
                 >
                   {chip}
                 </button>
@@ -269,7 +245,7 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
         )}
 
         {/* Input */}
-        <div className="p-4 border-t border-[#1a1a1a]">
+        <div className="p-4 border-t border-border/40">
           <div className="relative">
             <Textarea
               value={input}
@@ -281,19 +257,19 @@ export const ChatPanel = forwardRef<ChatPanelHandle, ChatPanelProps>(
                   : "Describe your infrastructure..."
               }
               rows={3}
-              className="pr-12 bg-[#111] border-[#222]"
+              className="pr-12 bg-input/50 border-border/40"
               disabled={isLoading}
             />
             <Button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || isLoading}
               size="icon"
-              className="absolute bottom-3 right-3 h-7 w-7 rounded-lg"
+              className="absolute bottom-3 right-3 h-7 w-7 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Send className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <p className="text-[10px] text-[#3f3f46] mt-2 text-center">
+          <p className="text-[10px] text-muted-foreground mt-2 text-center">
             ⏎ send · Shift+⏎ new line
           </p>
         </div>
@@ -311,21 +287,21 @@ function MessageBubble({ message }: { message: Message }) {
   > = {
     diagram: {
       label: "Diagram Ready",
-      color: "text-violet-400",
-      border: "border-violet-900/30",
-      bg: "bg-violet-950/10 border-violet-900/40",
+      color: "text-primary",
+      border: "border-primary/20",
+      bg: "border-primary/30",
     },
     update: {
       label: "Diagram Updated",
-      color: "text-cyan-400",
-      border: "border-cyan-900/30",
-      bg: "bg-cyan-950/10 border-cyan-900/40",
+      color: "text-accent",
+      border: "border-accent/20",
+      bg: "border-accent/30",
     },
     terraform: {
       label: "Terraform Ready",
       color: "text-emerald-400",
       border: "border-emerald-900/30",
-      bg: "bg-emerald-950/10 border-emerald-900/40",
+      bg: "border-emerald-800/30",
     },
   };
 
@@ -337,14 +313,14 @@ function MessageBubble({ message }: { message: Message }) {
         className={cn(
           "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
           isUser
-            ? "bg-[#1a1a1a] border border-[#2a2a2a]"
-            : "bg-violet-950/60 border border-violet-800/40"
+            ? "bg-primary/20 border border-primary/30"
+            : "bg-primary/10 border border-primary/20"
         )}
       >
         {isUser ? (
-          <User className="h-3.5 w-3.5 text-[#a1a1aa]" />
+          <User className="h-3.5 w-3.5 text-primary" />
         ) : (
-          <Cpu className="h-3.5 w-3.5 text-violet-400" />
+          <Cpu className="h-3.5 w-3.5 text-primary" />
         )}
       </div>
 
@@ -353,8 +329,8 @@ function MessageBubble({ message }: { message: Message }) {
           className={cn(
             "rounded-2xl px-4 py-3 text-sm leading-relaxed",
             isUser
-              ? "bg-violet-600/90 text-white rounded-tr-sm"
-              : "bg-[#111] border border-[#1e1e1e] text-[#e4e4e7] rounded-tl-sm",
+              ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-tr-sm shadow-lg shadow-primary/10"
+              : "bg-card/60 backdrop-blur-sm border border-border/40 text-card-foreground rounded-tl-sm",
             tag?.bg
           )}
         >
@@ -380,13 +356,13 @@ function MessageBubble({ message }: { message: Message }) {
 function ThinkingBubble() {
   return (
     <div className="flex gap-3">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-950/60 border border-violet-800/40">
-        <Cpu className="h-3.5 w-3.5 text-violet-400" />
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+        <Cpu className="h-3.5 w-3.5 text-primary" />
       </div>
-      <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-tl-sm bg-[#111] border border-[#1e1e1e]">
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-bounce [animation-delay:0ms]" />
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-bounce [animation-delay:150ms]" />
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-bounce [animation-delay:300ms]" />
+      <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-tl-sm bg-card/60 backdrop-blur-sm border border-border/40">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
       </div>
     </div>
   );

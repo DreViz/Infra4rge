@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, RefreshCw, ZoomIn, ZoomOut, CheckCircle, ArrowRight } from "lucide-react";
+import { Download, RefreshCw, ZoomIn, ZoomOut, CheckCircle, ArrowRight, Network } from "lucide-react";
 import type { ForgeStage } from "./workspace";
 
 interface DiagramPanelProps {
@@ -67,9 +67,13 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
           setRendered(true);
         }
       } catch (e) {
-        console.error("Mermaid render error:", e);
+        console.warn("[Diagram] Mermaid render error:", e);
         if (containerRef.current && !cancelled) {
-          containerRef.current.innerHTML = `<p style="color:#71717a;padding:16px;font-size:13px">Diagram render failed — AI returned malformed Mermaid syntax.</p>`;
+          containerRef.current.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:12px;padding:20px;text-align:center">
+              <p style="color:var(--muted-foreground);font-size:13px;font-weight:500">Diagram syntax error</p>
+              <p style="color:var(--muted-foreground);font-size:12px;opacity:0.6">Try asking the AI to regenerate the diagram</p>
+            </div>`;
           setRendered(true);
         }
       }
@@ -79,10 +83,8 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
     return () => { cancelled = true; };
   }, [diagram, isGenerating]);
 
-  // Reset rendered state when diagram is cleared
   useEffect(() => {
     if (!diagram) {
-      // Use a microtask to avoid synchronous setState in effect
       Promise.resolve().then(() => setRendered(false));
     }
   }, [diagram]);
@@ -130,9 +132,9 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-[#a1a1aa]">Architecture</span>
+          <span className="text-xs font-medium text-muted-foreground">Architecture</span>
           {isGenerating && (
             <Badge variant="yellow">
               <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
@@ -140,7 +142,7 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
             </Badge>
           )}
           {!isGenerating && diagram && stage !== "complete" && (
-            <Badge variant="violet">Review</Badge>
+            <Badge variant="default">Review</Badge>
           )}
           {stage === "complete" && (
             <Badge variant="green">
@@ -153,11 +155,11 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
           <Button variant="ghost" size="icon" onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))} className="h-7 w-7" disabled={showEmpty}>
             <ZoomOut className="h-3.5 w-3.5" />
           </Button>
-          <span className="text-xs text-[#52525b] w-10 text-center">{Math.round(zoom * 100)}%</span>
+          <span className="text-xs text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
           <Button variant="ghost" size="icon" onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))} className="h-7 w-7" disabled={showEmpty}>
             <ZoomIn className="h-3.5 w-3.5" />
           </Button>
-          <div className="w-px h-4 bg-[#222] mx-1" />
+          <div className="w-px h-4 bg-border mx-1" />
           <Button variant="ghost" size="sm" onClick={handleDownload} className="h-7 gap-1.5" disabled={!rendered || isGenerating || !diagram}>
             <Download className="h-3.5 w-3.5" />
             <span className="text-xs">PNG</span>
@@ -166,11 +168,9 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
       </div>
 
       {/* Diagram area */}
-      <div className={`flex-1 overflow-auto ${showDiagram ? "p-6 bg-[#f1f5f9]" : "bg-[#080808]"}`}>
+      <div className={`flex-1 overflow-auto ${showDiagram ? "p-6 bg-[#f1f5f9]" : "bg-background"}`}>
         {isGenerating && <GeneratingState />}
-
         {showEmpty && <EmptyState />}
-
         {showDiagram && (
           !rendered ? (
             <div>
@@ -188,12 +188,12 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
         )}
       </div>
 
-      {/* Footer: summary + confirm */}
+      {/* Footer */}
       {!isGenerating && (
-        <div className="border-t border-[#1a1a1a] shrink-0 bg-[#080808]">
+        <div className="border-t border-border/40 shrink-0 bg-background/80 backdrop-blur-xl">
           {summary && (
             <div className="px-4 pt-3 pb-2">
-              <p className="text-xs text-[#71717a] leading-relaxed">{summary}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{summary}</p>
             </div>
           )}
           {stage === "diagram_ready" && (
@@ -207,11 +207,11 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
           )}
           {stage === "generating_terraform" && (
             <div className="px-4 pb-4 pt-2">
-              <div className="flex items-center justify-center gap-2 h-9 rounded-lg bg-violet-950/30 border border-violet-800/30">
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-bounce [animation-delay:0ms]" />
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-bounce [animation-delay:150ms]" />
-                <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-bounce [animation-delay:300ms]" />
-                <span className="text-xs text-violet-400 ml-1">Writing Terraform...</span>
+              <div className="flex items-center justify-center gap-2 h-9 rounded-lg bg-primary/10 border border-primary/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+                <span className="text-xs text-primary ml-1">Writing Terraform...</span>
               </div>
             </div>
           )}
@@ -223,48 +223,15 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-8 select-none">
-      {/* Ghost architecture illustration */}
-      <svg width="640" height="400" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Connection lines */}
-        <line x1="160" y1="44" x2="100" y2="96" stroke="#2a2a2a" strokeWidth="1.5" strokeDasharray="4 3"/>
-        <line x1="160" y1="44" x2="220" y2="96" stroke="#2a2a2a" strokeWidth="1.5" strokeDasharray="4 3"/>
-        <line x1="100" y1="116" x2="100" y2="148" stroke="#2a2a2a" strokeWidth="1.5" strokeDasharray="4 3"/>
-        <line x1="220" y1="116" x2="220" y2="148" stroke="#2a2a2a" strokeWidth="1.5" strokeDasharray="4 3"/>
-        <line x1="100" y1="116" x2="220" y2="148" stroke="#1e1e1e" strokeWidth="1" strokeDasharray="3 4"/>
-
-        {/* Top node — Load Balancer */}
-        <rect x="120" y="18" width="80" height="26" rx="6" fill="#7c3aed" fillOpacity="0.08" stroke="#7c3aed" strokeOpacity="0.25" strokeWidth="1"/>
-        <rect x="134" y="26" width="28" height="4" rx="2" fill="#7c3aed" fillOpacity="0.25"/>
-        <rect x="166" y="26" width="18" height="4" rx="2" fill="#7c3aed" fillOpacity="0.15"/>
-
-        {/* Middle left — App Server */}
-        <rect x="60" y="96" width="80" height="26" rx="6" fill="#c4b5fd" fillOpacity="0.06" stroke="#7c3aed" strokeOpacity="0.2" strokeWidth="1"/>
-        <rect x="74" y="104" width="22" height="4" rx="2" fill="#c4b5fd" fillOpacity="0.2"/>
-        <rect x="100" y="104" width="14" height="4" rx="2" fill="#c4b5fd" fillOpacity="0.12"/>
-
-        {/* Middle right — App Server */}
-        <rect x="180" y="96" width="80" height="26" rx="6" fill="#c4b5fd" fillOpacity="0.06" stroke="#7c3aed" strokeOpacity="0.2" strokeWidth="1"/>
-        <rect x="194" y="104" width="22" height="4" rx="2" fill="#c4b5fd" fillOpacity="0.2"/>
-        <rect x="220" y="104" width="14" height="4" rx="2" fill="#c4b5fd" fillOpacity="0.12"/>
-
-        {/* Bottom left — Database */}
-        <rect x="60" y="148" width="80" height="26" rx="6" fill="#3b82f6" fillOpacity="0.06" stroke="#3b82f6" strokeOpacity="0.2" strokeWidth="1"/>
-        <rect x="74" y="156" width="18" height="4" rx="2" fill="#3b82f6" fillOpacity="0.2"/>
-        <rect x="96" y="156" width="28" height="4" rx="2" fill="#3b82f6" fillOpacity="0.12"/>
-
-        {/* Bottom right — Cache */}
-        <rect x="180" y="148" width="80" height="26" rx="6" fill="#059669" fillOpacity="0.06" stroke="#059669" strokeOpacity="0.2" strokeWidth="1"/>
-        <rect x="194" y="156" width="24" height="4" rx="2" fill="#059669" fillOpacity="0.2"/>
-        <rect x="222" y="156" width="16" height="4" rx="2" fill="#059669" fillOpacity="0.12"/>
-      </svg>
-
-      {/* Text */}
+    <div className="flex flex-col items-center justify-center h-full gap-6 select-none">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+        <Network className="h-8 w-8 text-primary/40" />
+      </div>
       <div className="flex flex-col items-center gap-2 text-center">
-        <p className="text-sm font-medium text-[#3f3f46] tracking-tight">
+        <p className="text-sm font-medium text-muted-foreground">
           Architecture diagram will appear here
         </p>
-        <p className="text-xs text-[#2a2a2a] max-w-[220px] leading-relaxed">
+        <p className="text-xs text-muted-foreground/60 max-w-[220px] leading-relaxed">
           Describe your app in the chat to generate a live diagram
         </p>
       </div>
@@ -275,8 +242,8 @@ function EmptyState() {
 function RenderingState() {
   return (
     <div className="flex flex-col items-center justify-center h-64 gap-3">
-      <RefreshCw className="h-4 w-4 text-[#94a3b8] animate-spin" />
-      <p className="text-xs text-[#94a3b8]">Rendering...</p>
+      <RefreshCw className="h-4 w-4 text-muted-foreground animate-spin" />
+      <p className="text-xs text-muted-foreground">Rendering...</p>
     </div>
   );
 }
@@ -285,11 +252,11 @@ function GeneratingState() {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-5">
       <div className="flex items-center gap-1.5">
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-500/60 animate-bounce [animation-delay:0ms]" />
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-500/60 animate-bounce [animation-delay:150ms]" />
-        <span className="h-1.5 w-1.5 rounded-full bg-violet-500/60 animate-bounce [animation-delay:300ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
+        <span className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
       </div>
-      <p className="text-xs text-[#52525b] tracking-wide">Designing your architecture...</p>
+      <p className="text-xs text-muted-foreground tracking-wide">Designing your architecture...</p>
     </div>
   );
 }

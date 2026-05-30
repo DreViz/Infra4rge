@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InfraForge — Describe. Architect. Deploy.",
+  title: "InfraForge - AI-Powered Cloud Infrastructure Generator",
   description:
-    "Turn plain English into production-ready cloud architecture diagrams and Terraform code in seconds.",
+    "Transform natural language into production-ready Terraform code with AI-powered architecture generation, cost estimation, and security audits.",
 };
 
 export default function RootLayout({
@@ -26,9 +26,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="h-full flex flex-col bg-[#080808] text-[#fafafa]">
+      <body className="font-sans h-screen overflow-hidden bg-background text-foreground">
         {children}
       </body>
     </html>
