@@ -338,9 +338,9 @@ export function Workspace() {
         onDelete={handleDeleteProject}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* Chat panel */}
-        <div className="w-[380px] shrink-0 flex flex-col border-r border-border/40 overflow-hidden">
+        <div className="w-full md:w-[380px] h-[45dvh] md:h-full shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-border/40 overflow-hidden">
           <ChatPanel
             ref={chatRef}
             onGenerating={handleGenerating}
@@ -354,7 +354,7 @@ export function Workspace() {
         {/* Right panel */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Tab bar with glassmorphism */}
-          <div className="flex items-center gap-1 px-4 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
+          <div className="flex items-center gap-1 px-2 md:px-4 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0 overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;

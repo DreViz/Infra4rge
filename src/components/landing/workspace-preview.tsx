@@ -87,7 +87,7 @@ export function WorkspacePreview() {
         </div>
 
         <Card className="overflow-hidden border-border/40 bg-card/30 backdrop-blur">
-          <div className="flex h-[600px]">
+          <div className="flex h-[500px] md:h-[600px]">
             {/* History Sidebar */}
             <div className="hidden w-64 border-r border-border/40 bg-secondary/30 lg:block">
               <div className="flex items-center gap-2 border-b border-border/40 px-4 py-3">
@@ -162,7 +162,7 @@ export function WorkspacePreview() {
                   {/* Output Tabs */}
                   <div className="flex flex-col bg-secondary/20">
                     <Tabs defaultValue="diagram" className="flex h-full flex-col">
-                      <TabsList className="h-auto w-full justify-start gap-0 rounded-none border-b border-border/40 bg-transparent p-0">
+                      <TabsList className="h-auto w-full justify-start gap-0 rounded-none border-b border-border/40 bg-transparent p-0 overflow-x-auto">
                         <TabsTrigger
                           value="diagram"
                           className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent"
