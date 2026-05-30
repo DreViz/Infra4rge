@@ -76,7 +76,6 @@ function parseCostResponse(raw: string): CostEstimate | undefined {
 
   try {
     const parsed = JSON.parse(text);
-    // Ensure numeric fields are actually numbers
     if (parsed.resources) {
       parsed.resources = parsed.resources.map((r: CostResource) => ({
         ...r,

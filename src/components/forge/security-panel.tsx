@@ -97,10 +97,8 @@ export function SecurityPanel({ audit, isLoading, error, onFix }: SecurityPanelP
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Score header with circular progress */}
       <div className="px-5 py-4 border-b border-border/40 shrink-0">
         <div className="flex items-center gap-5">
-          {/* Circular score ring */}
           <div className={cn("relative flex items-center justify-center shrink-0", gradeConfig.bg, "rounded-2xl")}>
             <svg width="80" height="80" className="-rotate-90">
               <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="3" className="text-border/40" />
@@ -148,7 +146,6 @@ export function SecurityPanel({ audit, isLoading, error, onFix }: SecurityPanelP
           </div>
         </div>
 
-        {/* Fix All button */}
         {criticalAndHigh.length > 0 && (
           <Button
             onClick={() => onFix(audit.fixAllInstruction)}
@@ -161,7 +158,6 @@ export function SecurityPanel({ audit, isLoading, error, onFix }: SecurityPanelP
         )}
       </div>
 
-      {/* Findings list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {(["CRITICAL", "HIGH", "MEDIUM", "LOW"] as Severity[]).map((sev) => {
           const findings = bySeverity[sev];

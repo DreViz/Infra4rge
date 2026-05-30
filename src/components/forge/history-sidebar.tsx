@@ -45,7 +45,6 @@ export function HistorySidebar({
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
@@ -53,14 +52,12 @@ export function HistorySidebar({
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={cn(
           "fixed top-0 right-0 z-50 h-full w-80 flex flex-col bg-card/95 backdrop-blur-xl border-l border-border/40 shadow-2xl transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/40">
           <div className="flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
@@ -79,7 +76,6 @@ export function HistorySidebar({
           </button>
         </div>
 
-        {/* Project list */}
         <div className="flex-1 overflow-y-auto">
           {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
@@ -169,7 +165,6 @@ export function HistorySidebar({
           )}
         </div>
 
-        {/* Footer */}
         {projects.length > 0 && (
           <div className="px-4 py-3 border-t border-border/40">
             <p className="text-[10px] text-muted-foreground">

@@ -93,7 +93,6 @@ export function CostPanel({ estimate, isLoading, error, onOptimize }: CostPanelP
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header summary */}
       <div className="px-5 py-4 border-b border-border/40 shrink-0">
         <div className="flex items-end justify-between">
           <div>
@@ -125,7 +124,6 @@ export function CostPanel({ estimate, isLoading, error, onOptimize }: CostPanelP
           </div>
         </div>
 
-        {/* Gradient cost bar */}
         <div className="mt-4 flex h-2 rounded-full overflow-hidden gap-0.5 bg-muted/30">
           {estimate.resources.map((r, i) => {
             const pct = estimate.totalMonthly > 0

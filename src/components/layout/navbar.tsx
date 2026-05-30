@@ -12,7 +12,6 @@ export function Navbar({ minimal = false }: NavbarProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <div className="flex h-full items-center justify-between px-6 max-w-7xl mx-auto">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
             <Anvil className="h-4 w-4 text-primary-foreground" />

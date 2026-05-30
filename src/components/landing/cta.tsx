@@ -7,7 +7,6 @@ export function CTA() {
     <section className="px-6 py-20 md:py-32">
       <div className="mx-auto max-w-4xl">
         <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-primary/5 p-8 md:p-12">
-          {/* Background decoration */}
           <div className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-primary/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-accent/10 blur-3xl" />
 

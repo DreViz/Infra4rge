@@ -131,7 +131,6 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">Architecture</span>
@@ -167,7 +166,6 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
         </div>
       </div>
 
-      {/* Diagram area */}
       <div className={`flex-1 overflow-auto ${showDiagram ? "p-6 bg-[#f1f5f9]" : "bg-background"}`}>
         {isGenerating && <GeneratingState />}
         {showEmpty && <EmptyState />}
@@ -188,7 +186,6 @@ export function DiagramPanel({ isGenerating, diagram, summary, stage, isRefineme
         )}
       </div>
 
-      {/* Footer */}
       {!isGenerating && (
         <div className="border-t border-border/40 shrink-0 bg-background/80 backdrop-blur-xl">
           {summary && (

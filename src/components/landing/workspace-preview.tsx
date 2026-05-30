@@ -88,7 +88,6 @@ export function WorkspacePreview() {
 
         <Card className="overflow-hidden border-border/40 bg-card/30 backdrop-blur">
           <div className="flex h-[500px] md:h-[600px]">
-            {/* History Sidebar */}
             <div className="hidden w-64 border-r border-border/40 bg-secondary/30 lg:block">
               <div className="flex items-center gap-2 border-b border-border/40 px-4 py-3">
                 <History className="h-4 w-4 text-muted-foreground" />
@@ -117,11 +116,9 @@ export function WorkspacePreview() {
               </ScrollArea>
             </div>
 
-            {/* Main Content */}
             <div className="flex flex-1 flex-col">
               <div className="flex-1 overflow-hidden">
                 <div className="grid h-full md:grid-cols-2">
-                  {/* Chat */}
                   <div className="flex flex-col border-r border-border/40">
                     <ScrollArea className="flex-1 p-4">
                       <div className="space-y-4">
@@ -159,7 +156,6 @@ export function WorkspacePreview() {
                     </div>
                   </div>
 
-                  {/* Output Tabs */}
                   <div className="flex flex-col bg-secondary/20">
                     <Tabs defaultValue="diagram" className="flex h-full flex-col">
                       <TabsList className="h-auto w-full justify-start gap-0 rounded-none border-b border-border/40 bg-transparent p-0 overflow-x-auto">

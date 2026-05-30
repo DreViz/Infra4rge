@@ -44,17 +44,14 @@ export function Workspace() {
   const [terraform, setTerraform] = useState<string | null>(null);
   const [iterationCount, setIterationCount] = useState(0);
 
-  // Cost state
   const [costEstimate, setCostEstimate] = useState<CostEstimate | null>(null);
   const [costLoading, setCostLoading] = useState(false);
   const [costError, setCostError] = useState<string | null>(null);
 
-  // Security state
   const [securityAudit, setSecurityAudit] = useState<SecurityAudit | null>(null);
   const [securityLoading, setSecurityLoading] = useState(false);
   const [securityError, setSecurityError] = useState<string | null>(null);
 
-  // Project / history state
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Architecture");
@@ -65,12 +62,10 @@ export function Workspace() {
 
   const chatRef = useRef<ChatPanelHandle>(null);
 
-  // Load saved projects on mount
   useEffect(() => {
     Promise.resolve().then(() => setProjects(getProjects()));
   }, []);
 
-  // Auto-save when terraform + diagram are both ready
   const autoSave = useCallback((
     tf: string,
     diag: DiagramData,
@@ -343,7 +338,6 @@ export function Workspace() {
       />
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden relative">
-        {/* Chat panel — hidden on mobile when viewing output */}
         <div className={cn(
           "w-full md:w-[380px] md:h-full shrink-0 flex flex-col md:border-r border-border/40 overflow-hidden",
           mobileView === "output" ? "hidden md:flex" : "flex h-full md:h-full"
@@ -358,12 +352,10 @@ export function Workspace() {
           />
         </div>
 
-        {/* Right panel — hidden on mobile when viewing chat */}
         <div className={cn(
           "flex-1 flex flex-col min-w-0 overflow-hidden",
           mobileView === "chat" ? "hidden md:flex" : "flex"
         )}>
-          {/* Tab bar with glassmorphism */}
           <div className="flex items-center gap-1 px-2 md:px-4 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0 overflow-x-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -395,7 +387,6 @@ export function Workspace() {
                       {tab.badge}
                     </Badge>
                   )}
-                  {/* Active indicator with gradient */}
                   {isActive && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-primary/80 to-accent rounded-full" />
                   )}
@@ -418,7 +409,6 @@ export function Workspace() {
             )}
           </div>
 
-          {/* Content */}
           <div className="flex-1 overflow-hidden">
             {activeTab === "diagram" && (
               <DiagramPanel
@@ -452,7 +442,6 @@ export function Workspace() {
           </div>
         </div>
 
-        {/* Mobile bottom toggle bar */}
         {(stage === "diagram_ready" || stage === "complete" || stage === "generating_terraform") && (
           <div className="flex md:hidden border-t border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
             <button

@@ -18,7 +18,6 @@ export function Header() {
           <span className="text-xl font-semibold tracking-tight">InfraForge</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
           <Link href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             Features
@@ -39,7 +38,6 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -49,7 +47,6 @@ export function Header() {
         </button>
       </nav>
 
-      {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="border-t border-border/40 bg-background px-6 py-4 md:hidden">
           <div className="flex flex-col gap-4">

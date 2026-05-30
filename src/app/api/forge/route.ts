@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
 
     if (stopReason === "max_tokens") {
       console.warn("[forge/route] response was truncated at", raw.length, "chars");
-      // Try to salvage terraform from truncated response
       const salvaged = trySalvageTerraform(raw);
       if (salvaged) {
         console.log("[forge/route] salvaged terraform from truncated response, length:", salvaged.length);
@@ -77,7 +76,6 @@ export async function POST(req: NextRequest) {
 function parseAIResponse(raw: string): ForgeResponse {
   let text = raw.trim();
 
-  // Handle code fences — pick the largest one (likely terraform)
   const allFences = [...text.matchAll(/```(?:json|hcl|terraform)?\s*([\s\S]*?)```/g)];
   if (allFences.length > 0) {
     const largest = allFences.reduce((a, b) =>
@@ -93,21 +91,23 @@ function parseAIResponse(raw: string): ForgeResponse {
     text = extracted;
   }
 
-  // Strip language hint prefix
   if (/^hcl\n/.test(text)) text = text.slice(4);
 
-  // Raw terraform (no JSON wrapper)
   if (looksLikeTerraform(text)) {
     console.log("[forge/route] detected raw terraform content, length:", text.length);
     return { type: "terraform", terraform: text };
   }
 
-  // Attempt 1: Parse raw JSON
+  const mermaidResult = tryExtractMermaid(text);
+  if (mermaidResult) {
+    console.log("[forge/route] extracted raw mermaid diagram, length:", (mermaidResult.diagram ?? "").length);
+    return mermaidResult;
+  }
+
   try {
     return handleParsedJSON(JSON.parse(text));
   } catch {}
 
-  // Attempt 2: Extract JSON object from surrounding text
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     try {
@@ -115,7 +115,6 @@ function parseAIResponse(raw: string): ForgeResponse {
     } catch {}
   }
 
-  // Attempt 3: Extract terraform from inside broken JSON
   const tfSalvage = trySalvageTerraform(text);
   if (tfSalvage) {
     console.log("[forge/route] salvaged terraform from broken JSON, length:", tfSalvage.length);
@@ -134,18 +133,11 @@ function parseAIResponse(raw: string): ForgeResponse {
   return { type: "question", content: text };
 }
 
-/**
- * Try to extract terraform from a broken or truncated JSON response.
- * Looks for the terraform field value by finding HCL patterns.
- */
 function trySalvageTerraform(text: string): string | null {
-  // Strategy 1: Find "terraform": "..." and extract the HCL inside
   const tfFieldMatch = text.match(/"terraform"\s*:\s*"([\s\S]*)/);
   if (tfFieldMatch) {
     let tf = tfFieldMatch[1];
-    // Remove trailing JSON artifacts (unfinished string)
     tf = tf.replace(/"\s*[}\]]*\s*$/, "");
-    // Unescape JSON string escapes
     tf = tf
       .replace(/\\n/g, "\n")
       .replace(/\\t/g, "\t")
@@ -155,14 +147,12 @@ function trySalvageTerraform(text: string): string | null {
     if (looksLikeTerraform(tf)) return tf;
   }
 
-  // Strategy 2: Find raw HCL patterns in the text (resource blocks, etc.)
   const resourceBlocks = text.match(/resource\s+"[\w_]+"\s+"[\w_-]+"\s*\{[\s\S]*?(?=\nresource|\nprovider|\nvariable|\noutput|\nmodule|$)/g);
   if (resourceBlocks && resourceBlocks.length >= 2) {
     const combined = resourceBlocks.join("\n\n");
     if (looksLikeTerraform(combined)) return combined;
   }
 
-  // Strategy 3: Look for terraform block start to end
   const hclMatch = text.match(/(terraform\s*\{[\s\S]*|(?:resource|provider|variable|module)\s+"[\s\S]*)/);
   if (hclMatch) {
     let tf = hclMatch[1]
@@ -171,12 +161,71 @@ function trySalvageTerraform(text: string): string | null {
       .replace(/\\\"/g, '"')
       .replace(/\\\\/g, "\\")
       .trim();
-    // Remove trailing JSON artifacts
     tf = tf.replace(/"\s*[}\]]*\s*$/, "");
     if (looksLikeTerraform(tf)) return tf;
   }
 
   return null;
+}
+
+function tryExtractMermaid(text: string): ForgeResponse | null {
+  const mermaidStartPatterns = [
+    /Mermaid diagram:\s*\n/gi,
+    /```mermaid\s*\n/gi,
+  ];
+
+  for (const pattern of mermaidStartPatterns) {
+    const match = pattern.exec(text);
+    if (!match) continue;
+
+    const afterMatch = text.slice(match.index + match[0].length);
+
+    const mermaidMatch = afterMatch.match(
+      /([\s\S]*?)(?:```|\n\n[A-Z]|\n\d+\.|$)/
+    );
+    if (!mermaidMatch) continue;
+
+    let diagram = mermaidMatch[1].trim();
+    if (diagram.length < 50) {
+      diagram = afterMatch.trim();
+    }
+
+    if (!looksLikeMermaid(diagram)) continue;
+
+    const summary = text.slice(0, match.index).trim();
+
+    return {
+      type: "diagram",
+      summary: summary || "Architecture designed.",
+      diagram,
+    };
+  }
+
+  const rawGraphMatch = text.match(/^(graph\s+(?:TB|BT|LR|RL|TD)\s*\n[\s\S]{50,})/m);
+  if (rawGraphMatch && looksLikeMermaid(rawGraphMatch[1])) {
+    const diagram = rawGraphMatch[1].trim();
+    const summary = text.slice(0, text.indexOf(rawGraphMatch[0])).trim();
+    return {
+      type: "diagram",
+      summary: summary || "Architecture designed.",
+      diagram,
+    };
+  }
+
+  return null;
+}
+
+function looksLikeMermaid(text: string): boolean {
+  if (text.length < 30) return false;
+  const patterns = [
+    /^graph\s+(TB|BT|LR|RL|TD)/m,
+    /^flowchart\s+(TB|BT|LR|RL|TD)/m,
+    /^sequenceDiagram/m,
+    /^\s*\w+\[.*?\]\s*-->/m,
+    /^\s*\w+.*?-->.*?\w+/m,
+    /^classDef\s/m,
+  ];
+  return patterns.some((p) => p.test(text));
 }
 
 function looksLikeTerraform(text: string): boolean {
@@ -210,7 +259,14 @@ function handleParsedJSON(parsed: Record<string, unknown>): ForgeResponse {
   }
 
   if (normalizedType === "question") return { type: "question", content };
-  if (normalizedType === "diagram") return { type: "diagram", summary: parsed.summary as string, diagram: parsed.diagram as string };
+  if (normalizedType === "diagram") {
+    let summary = (parsed.summary as string) ?? "";
+    const diagram = (parsed.diagram as string) ?? "";
+    if (summary.includes("Mermaid diagram:") || summary.match(/^graph\s+(TB|BT|LR|RL|TD)/m)) {
+      summary = summary.split(/Mermaid diagram:/i)[0].trim();
+    }
+    return { type: "diagram", summary: summary || "Architecture designed.", diagram };
+  }
   if (normalizedType === "terraform") {
     const tf = ((parsed.terraform as string) ?? "").replace(/^hcl\n/, "");
     return { type: "terraform", terraform: tf };

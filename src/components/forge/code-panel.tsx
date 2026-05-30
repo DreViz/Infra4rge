@@ -38,7 +38,6 @@ export function CodePanel({ isGenerating, terraform }: CodePanelProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-2">
           <FileCode className="h-3.5 w-3.5 text-muted-foreground" />
@@ -65,7 +64,6 @@ export function CodePanel({ isGenerating, terraform }: CodePanelProps) {
         </div>
       </div>
 
-      {/* Code */}
       <div className="flex-1 overflow-auto">
         {isGenerating ? (
           <div className="flex flex-col items-center justify-center h-48 gap-4">
@@ -90,7 +88,6 @@ export function CodePanel({ isGenerating, terraform }: CodePanelProps) {
         )}
       </div>
 
-      {/* Footer */}
       {terraform && !isGenerating && (
         <div className="px-4 py-3 border-t border-border/40 flex items-center gap-4 shrink-0">
           {resourceCount > 0 && (

@@ -51,7 +51,6 @@ export function ForgeToolbar({
 
   return (
     <div className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
-      {/* Project name */}
       <div className="flex items-center gap-2 min-w-0">
         {editing ? (
           <input
@@ -80,7 +79,6 @@ export function ForgeToolbar({
         )}
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-1.5">
         {canExport && (
           <Button
