@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     console.log("[cost/route] estimating cost for terraform, length:", terraform.length);
 
-    const response = await glm.messages.create({
+    const stream = glm.messages.stream({
       model: GLM_MODEL,
       max_tokens: 6000,
       system: COST_SYSTEM_PROMPT,
@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
         },
       ],
     });
+
+    const response = await stream.finalMessage();
 
     const raw = response.content[0]?.type === "text" ? response.content[0].text : "";
     console.log("[cost/route] raw response length:", raw.length);

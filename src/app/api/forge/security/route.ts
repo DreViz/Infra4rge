@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     console.log("[security/route] auditing terraform, length:", terraform.length);
 
-    const response = await glm.messages.create({
+    const stream = glm.messages.stream({
       model: GLM_MODEL,
       max_tokens: 8000,
       system: SECURITY_SYSTEM_PROMPT,
@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
         },
       ],
     });
+
+    const response = await stream.finalMessage();
 
     const raw = response.content[0]?.type === "text" ? response.content[0].text : "";
     console.log("[security/route] raw response length:", raw.length);
